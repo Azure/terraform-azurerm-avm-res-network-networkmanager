@@ -41,6 +41,6 @@ module "network_manager" {
   location            = azurerm_resource_group.this.location
   scope_accesses      = ["Connectivity", "SecurityAdmin"]
   scope = {
-    
+
   }
 }
