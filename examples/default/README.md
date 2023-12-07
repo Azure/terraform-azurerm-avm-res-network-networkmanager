@@ -24,6 +24,9 @@ resource "random_integer" "region_index" {
   max = length(local.azure_regions) - 1
 }
 
+data "azurerm_subscription" "current" {
+}
+
 # This ensures we have unique CAF compliant names for our resources.
 module "naming" {
   source  = "Azure/naming/azurerm"
@@ -46,9 +49,6 @@ module "network_manager" {
   resource_group_name = azurerm_resource_group.this.name
   location            = azurerm_resource_group.this.location
   scope_accesses      = ["Connectivity", "SecurityAdmin"]
-  scope = {
-
-  }
 }
 ```
 
@@ -75,6 +75,7 @@ The following resources are used by this module:
 
 - [azurerm_resource_group.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) (resource)
 - [random_integer.region_index](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/integer) (resource)
+- [azurerm_subscription.current](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/subscription) (data source)
 
 <!-- markdownlint-disable MD013 -->
 ## Required Inputs
