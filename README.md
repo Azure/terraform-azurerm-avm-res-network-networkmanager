@@ -135,7 +135,7 @@ map(object({
   }))
 ```
 
-Default: `{}`
+Default: `null`
 
 ## Outputs
 

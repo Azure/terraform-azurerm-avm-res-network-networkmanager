@@ -30,7 +30,7 @@ variable "scope" {
     management_group_ids = optional(list(string))
     subscription_ids     = optional(string)
   }))
-  default     = {}
+  default     = null
   description = "A map of scope to assign to this resource. Scope is a required attribute for Azure Virtual Network Manager. You can use Subscription ID or Management Group ID as scope."
 }
 variable "scope_accesses" {
