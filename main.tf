@@ -1,15 +1,9 @@
-/*data "azurerm_resource_group" "parent" {
-  count = var.location == null ? 1 : 0
-  name  = var.resource_group_name
-}
-*/
-
 resource "azurerm_network_manager" "this" {
   name                = var.name # calling code must supply the name
   resource_group_name = var.resource_group_name
   location            = var.location
   scope {
-    subscription_ids = [var.scope.subscription_ids]
+    subscription_ids = var.scope.subscription_ids
   }
   scope_accesses = var.scope_accesses
 }

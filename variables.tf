@@ -26,15 +26,15 @@ variable "name" {
 }
 
 variable "scope" {
-  type = map(object({
-    management_group_ids = optional(list(string))
-    subscription_ids     = optional(list(string))
-  }))
-  default = {}
+  type = object({
+    management_group_ids = optional(list(string), [])
+    subscription_ids     = optional(list(string), [])
+  })
+  default     = {}
   description = "A map of scope to assign to this resource. Scope is a required attribute for Azure Virtual Network Manager. You can use Subscription ID or Management Group ID as scope."
-    #validation {
-    #condition     = can(regex("^[0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12}$", var.scope.subscription_ids))
-    #error_message = "The subscription ID must be a valid GUID. Letters must be lowercase."
+  #validation {
+  #condition     = can(regex("^[0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12}$", var.scope.subscription_ids))
+  #error_message = "The subscription ID must be a valid GUID. Letters must be lowercase."
   #}
 }
 
