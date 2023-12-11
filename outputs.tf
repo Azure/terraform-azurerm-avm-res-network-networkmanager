@@ -6,3 +6,4 @@ output "network_manager" {
   value       = azurerm_network_manager.this
   description = "This is the full output for the resource."
 }
+

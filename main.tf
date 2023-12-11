@@ -4,15 +4,12 @@
 }
 */
 
-data "azurerm_subscription" "current" {
-}
-
 resource "azurerm_network_manager" "this" {
   name                = var.name # calling code must supply the name
   resource_group_name = var.resource_group_name
   location            = var.location
   scope {
-    subscription_ids = [data.azurerm_subscription.current.id]
+    subscription_ids = [var.scope.subscription_ids]
   }
   scope_accesses = var.scope_accesses
 }
