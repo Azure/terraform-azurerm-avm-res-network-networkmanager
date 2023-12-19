@@ -27,6 +27,7 @@ The following providers are used by this module:
 The following resources are used by this module:
 
 - [azurerm_management_lock.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/management_lock) (resource)
+- [azurerm_monitor_diagnostic_setting.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/monitor_diagnostic_setting) (resource)
 - [azurerm_network_manager.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/network_manager) (resource)
 - [azurerm_resource_group_template_deployment.telemetry](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group_template_deployment) (resource)
 - [azurerm_role_assignment.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) (resource)
@@ -37,27 +38,81 @@ The following resources are used by this module:
 
 The following input variables are required:
 
-### <a name="input_name"></a> [name](#input\_name)
+### <a name="input_location"></a> [location](#input\_location)
 
-Description: The name of the this resource.
+Description: (Required) Specifies the Azure Region where the Network Managers should exist. Changing this forces a new resource to be created.
 
 Type: `string`
+
+### <a name="input_name"></a> [name](#input\_name)
+
+Description: (Required) Specifies the name which should be used for this Network Managers. Changing this forces a new Network Managers to be created.
+
+Type: `string`
+
+### <a name="input_network_manager_scope"></a> [network\_manager\_scope](#input\_network\_manager\_scope)
+
+Description: - `management_group_ids` - (Optional) A list of management group IDs.
+- `subscription_ids` - (Optional) A list of subscription IDs.
+
+Type:
+
+```hcl
+object({
+    management_group_ids = optional(list(string))
+    subscription_ids     = optional(list(string))
+  })
+```
+
+### <a name="input_network_manager_scope_accesses"></a> [network\_manager\_scope\_accesses](#input\_network\_manager\_scope\_accesses)
+
+Description: (Required) A list of configuration deployment type. Possible values are `Connectivity` and `SecurityAdmin`, corresponds to if Connectivity Configuration and Security Admin Configuration is allowed for the Network Manager.
+
+Type: `list(string)`
 
 ### <a name="input_resource_group_name"></a> [resource\_group\_name](#input\_resource\_group\_name)
 
-Description: The resource group where the resources will be deployed.
+Description: (Required) Specifies the name of the Resource Group where the Network Managers should exist. Changing this forces a new Network Managers to be created.
 
 Type: `string`
-
-### <a name="input_scope_accesses"></a> [scope\_accesses](#input\_scope\_accesses)
-
-Description: A list  of congiguration deployment type for scope accesses.
-
-Type: `list(string)`
 
 ## Optional Inputs
 
 The following input variables are optional (have default values):
+
+### <a name="input_diagnostic_settings"></a> [diagnostic\_settings](#input\_diagnostic\_settings)
+
+Description:   A map of diagnostic settings to create on the Key Vault. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
+
+  - `name` - (Optional) The name of the diagnostic setting. One will be generated if not set, however this will not be unique if you want to create multiple diagnostic setting resources.
+  - `log_categories` - (Optional) A set of log categories to send to the log analytics workspace. Defaults to `[]`.
+  - `log_groups` - (Optional) A set of log groups to send to the log analytics workspace. Defaults to `["allLogs"]`.
+  - `metric_categories` - (Optional) A set of metric categories to send to the log analytics workspace. Defaults to `["AllMetrics"]`.
+  - `log_analytics_destination_type` - (Optional) The destination type for the diagnostic setting. Possible values are `Dedicated` and `AzureDiagnostics`. Defaults to `Dedicated`.
+  - `workspace_resource_id` - (Optional) The resource ID of the log analytics workspace to send logs and metrics to.
+  - `storage_account_resource_id` - (Optional) The resource ID of the storage account to send logs and metrics to.
+  - `event_hub_authorization_rule_resource_id` - (Optional) The resource ID of the event hub authorization rule to send logs and metrics to.
+  - `event_hub_name` - (Optional) The name of the event hub. If none is specified, the default event hub will be selected.
+  - `marketplace_partner_resource_id` - (Optional) The full ARM resource ID of the Marketplace resource to which you would like to send Diagnostic LogsLogs.
+
+Type:
+
+```hcl
+map(object({
+    name                                     = optional(string, null)
+    log_categories                           = optional(set(string), [])
+    log_groups                               = optional(set(string), ["allLogs"])
+    metric_categories                        = optional(set(string), ["AllMetrics"])
+    log_analytics_destination_type           = optional(string, "Dedicated")
+    workspace_resource_id                    = optional(string, null)
+    storage_account_resource_id              = optional(string, null)
+    event_hub_authorization_rule_resource_id = optional(string, null)
+    event_hub_name                           = optional(string, null)
+    marketplace_partner_resource_id          = optional(string, null)
+  }))
+```
+
+Default: `{}`
 
 ### <a name="input_enable_telemetry"></a> [enable\_telemetry](#input\_enable\_telemetry)
 
@@ -69,17 +124,9 @@ Type: `bool`
 
 Default: `true`
 
-### <a name="input_location"></a> [location](#input\_location)
-
-Description: Azure region where the resource should be deployed.  If null, the location will be inferred from the resource group location.
-
-Type: `string`
-
-Default: `null`
-
 ### <a name="input_lock"></a> [lock](#input\_lock)
 
-Description: The lock level to apply. Default is `None`. Possible values are `None`, `CanNotDelete`, and `ReadOnly`.
+Description: The lock level to apply to the Key Vault. Possible values are `None`, `CanNotDelete`, and `ReadOnly`.
 
 Type:
 
@@ -92,18 +139,46 @@ object({
 
 Default: `{}`
 
+### <a name="input_network_manager_description"></a> [network\_manager\_description](#input\_network\_manager\_description)
+
+Description: (Optional) A description of the network manager.
+
+Type: `string`
+
+Default: `null`
+
+### <a name="input_network_manager_timeouts"></a> [network\_manager\_timeouts](#input\_network\_manager\_timeouts)
+
+Description: - `create` - (Defaults to 30 minutes) Used when creating the Network Managers.
+- `delete` - (Defaults to 30 minutes) Used when deleting the Network Managers.
+- `read` - (Defaults to 5 minutes) Used when retrieving the Network Managers.
+- `update` - (Defaults to 30 minutes) Used when updating the Network Managers.
+
+Type:
+
+```hcl
+object({
+    create = optional(string)
+    delete = optional(string)
+    read   = optional(string)
+    update = optional(string)
+  })
+```
+
+Default: `null`
+
 ### <a name="input_role_assignments"></a> [role\_assignments](#input\_role\_assignments)
 
-Description: A map of role assignments to create on this resource. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
+Description:   A map of role assignments to create on the Key Vault. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
 
-- `role_definition_id_or_name` - The ID or name of the role definition to assign to the principal.
-- `principal_id` - The ID of the principal to assign the role to.
-- `description` - The description of the role assignment.
-- `skip_service_principal_aad_check` - If set to true, skips the Azure Active Directory check for the service principal in the tenant. Defaults to false.
-- `condition` - The condition which will be used to scope the role assignment.
-- `condition_version` - The version of the condition syntax. Valid values are '2.0'.
+  - `role_definition_id_or_name` - The ID or name of the role definition to assign to the principal.
+  - `principal_id` - The ID of the principal to assign the role to.
+  - `description` - The description of the role assignment.
+  - `skip_service_principal_aad_check` - If set to true, skips the Azure Active Directory check for the service principal in the tenant. Defaults to false.
+  - `condition` - The condition which will be used to scope the role assignment.
+  - `condition_version` - The version of the condition syntax. Leave as `null` if you are not using a condition, if you are then valid values are '2.0'.
 
-> Note: only set `skip_service_principal_aad_check` to true if you are assigning a role to a service principal.
+  > Note: only set `skip_service_principal_aad_check` to true if you are assigning a role to a service principal.
 
 Type:
 
@@ -121,18 +196,11 @@ map(object({
 
 Default: `{}`
 
-### <a name="input_scope"></a> [scope](#input\_scope)
+### <a name="input_tags"></a> [tags](#input\_tags)
 
-Description: A map of scope to assign to this resource. Scope is a required attribute for Azure Virtual Network Manager. You can use Subscription ID or Management Group ID as scope.
+Description: n/a
 
-Type:
-
-```hcl
-object({
-    management_group_ids = optional(list(string), [])
-    subscription_ids     = optional(list(string), [])
-  })
-```
+Type: `map(any)`
 
 Default: `{}`
 
@@ -140,9 +208,13 @@ Default: `{}`
 
 The following outputs are exported:
 
-### <a name="output_network_manager"></a> [network\_manager](#output\_network\_manager)
+### <a name="output_id"></a> [id](#output\_id)
 
 Description: This is the full output for the resource.
+
+### <a name="output_name"></a> [name](#output\_name)
+
+Description: The name of the Network Manager.
 
 ## Modules
 

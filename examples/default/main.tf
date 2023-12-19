@@ -38,12 +38,12 @@ module "network_manager" {
   source = "../../"
   # source             = "Azure/avm-<res/ptn>-<name>/azurerm"
   # ...
-  enable_telemetry    = var.enable_telemetry
-  name                = "network-manager"
-  resource_group_name = azurerm_resource_group.this.name
-  location            = azurerm_resource_group.this.location
-  scope_accesses      = ["Connectivity", "SecurityAdmin"]
-  scope = {
+  enable_telemetry               = var.enable_telemetry
+  name                           = "network-manager"
+  resource_group_name            = azurerm_resource_group.this.name
+  location                       = azurerm_resource_group.this.location
+  network_manager_scope_accesses = ["Connectivity", "SecurityAdmin"]
+  network_manager_scope = {
     subscription_ids = ["/subscriptions/${data.azurerm_subscription.current.subscription_id}"]
   }
 }
