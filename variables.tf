@@ -41,9 +41,11 @@ variable "network_manager_description" {
 }
 
 variable "tags" {
-  type    = map(any)
-  default = {}
+  type        = map(string)
+  default     = null
+  description = "(Optional) A mapping of tags to assign to the resource."
 }
+
 variable "network_manager_timeouts" {
   type = object({
     create = optional(string)
