@@ -29,6 +29,8 @@ The following resources are used by this module:
 - [azurerm_management_lock.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/management_lock) (resource)
 - [azurerm_monitor_diagnostic_setting.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/monitor_diagnostic_setting) (resource)
 - [azurerm_network_manager.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/network_manager) (resource)
+- [azurerm_network_manager_network_group.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/network_manager_network_group) (resource)
+- [azurerm_network_manager_static_member.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/network_manager_static_member) (resource)
 - [azurerm_resource_group_template_deployment.telemetry](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group_template_deployment) (resource)
 - [azurerm_role_assignment.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) (resource)
 - [random_id.telem](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/id) (resource)
@@ -126,18 +128,21 @@ Default: `true`
 
 ### <a name="input_lock"></a> [lock](#input\_lock)
 
-Description: The lock level to apply to the Key Vault. Possible values are `None`, `CanNotDelete`, and `ReadOnly`.
+Description:   Controls the Resource Lock configuration for this resource. The following properties can be specified:
+
+  - `kind` - (Required) The type of lock. Possible values are `\"CanNotDelete\"` and `\"ReadOnly\"`.
+  - `name` - (Optional) The name of the lock. If not specified, a name will be generated based on the `kind` value. Changing this forces the creation of a new resource.
 
 Type:
 
 ```hcl
 object({
+    kind = string
     name = optional(string, null)
-    kind = optional(string, "None")
   })
 ```
 
-Default: `{}`
+Default: `null`
 
 ### <a name="input_network_manager_description"></a> [network\_manager\_description](#input\_network\_manager\_description)
 
@@ -146,6 +151,30 @@ Description: (Optional) A description of the network manager.
 Type: `string`
 
 Default: `null`
+
+### <a name="input_network_manager_network_groups"></a> [network\_manager\_network\_groups](#input\_network\_manager\_network\_groups)
+
+Description:   A map of network groups to create on the Network Manager. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
+  `name` - (Required) The name of the network group.
+  `description` - (Optional) The description of the network group.
+  `static_members` - (Optional) A list of static members to add to the network group.
+    - `name` - (Required) The name of the static member.
+    - `target_virtual_network_id` - (Required) The ID of the target virtual network to associate with the static member.
+
+Type:
+
+```hcl
+map(object({
+    name        = string
+    description = optional(string)
+    static_members = optional(list(object({
+      name                      = string
+      target_virtual_network_id = string
+    })))
+  }))
+```
+
+Default: `{}`
 
 ### <a name="input_network_manager_timeouts"></a> [network\_manager\_timeouts](#input\_network\_manager\_timeouts)
 
@@ -169,14 +198,16 @@ Default: `null`
 
 ### <a name="input_role_assignments"></a> [role\_assignments](#input\_role\_assignments)
 
-Description:   A map of role assignments to create on the Key Vault. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
+Description:   A map of role assignments to create on the <RESOURCE>. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
 
   - `role_definition_id_or_name` - The ID or name of the role definition to assign to the principal.
   - `principal_id` - The ID of the principal to assign the role to.
-  - `description` - The description of the role assignment.
-  - `skip_service_principal_aad_check` - If set to true, skips the Azure Active Directory check for the service principal in the tenant. Defaults to false.
-  - `condition` - The condition which will be used to scope the role assignment.
-  - `condition_version` - The version of the condition syntax. Leave as `null` if you are not using a condition, if you are then valid values are '2.0'.
+  - `description` - (Optional) The description of the role assignment.
+  - `skip_service_principal_aad_check` - (Optional) If set to true, skips the Azure Active Directory check for the service principal in the tenant. Defaults to false.
+  - `condition` - (Optional) The condition which will be used to scope the role assignment.
+  - `condition_version` - (Optional) The version of the condition syntax. Leave as `null` if you are not using a condition, if you are then valid values are '2.0'.
+  - `delegated_managed_identity_resource_id` - (Optional) The delegated Azure Resource Id which contains a Managed Identity. Changing this forces a new resource to be created. This field is only used in cross-tenant scenario.
+  - `principal_type` - (Optional) The type of the `principal_id`. Possible values are `User`, `Group` and `ServicePrincipal`. It is necessary to explicitly set this attribute when creating role assignments if the principal creating the assignment is constrained by ABAC rules that filters on the PrincipalType attribute.
 
   > Note: only set `skip_service_principal_aad_check` to true if you are assigning a role to a service principal.
 
@@ -191,6 +222,7 @@ map(object({
     condition                              = optional(string, null)
     condition_version                      = optional(string, null)
     delegated_managed_identity_resource_id = optional(string, null)
+    principal_type                         = optional(string, null)
   }))
 ```
 
@@ -208,13 +240,17 @@ Default: `null`
 
 The following outputs are exported:
 
-### <a name="output_id"></a> [id](#output\_id)
-
-Description: This is the full output for the resource.
-
 ### <a name="output_name"></a> [name](#output\_name)
 
 Description: The name of the Network Manager.
+
+### <a name="output_resource"></a> [resource](#output\_resource)
+
+Description: This is the full output for the resource.
+
+### <a name="output_resource_id"></a> [resource\_id](#output\_resource\_id)
+
+Description: This is the full output for the resource.
 
 ## Modules
 
