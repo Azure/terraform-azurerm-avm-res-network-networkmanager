@@ -1,7 +1,7 @@
 <!-- BEGIN_TF_DOCS -->
 # Default example
 
-This deploys the module in its simplest form.
+This example shows how to create a network group and add a static member to it.
 
 ```hcl
 terraform {
@@ -42,6 +42,13 @@ resource "azurerm_resource_group" "this" {
   name     = module.naming.resource_group.name_unique
 }
 
+resource "azurerm_virtual_network" "this" {
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.this.location
+  name                = module.naming.virtual_network.name
+  resource_group_name = azurerm_resource_group.this.name
+}
+
 # This is the module call
 module "network_manager" {
   source = "../../"
@@ -54,6 +61,17 @@ module "network_manager" {
   network_manager_scope_accesses = ["Connectivity", "SecurityAdmin"]
   network_manager_scope = {
     subscription_ids = ["/subscriptions/${data.azurerm_subscription.current.subscription_id}"]
+  }
+  network_manager_network_groups = {
+    "network-group-1" = {
+      name = "network-group-1"
+      static_members = [
+        {
+          name                      = "static-member-1"
+          target_virtual_network_id = azurerm_virtual_network.this.id
+        }
+      ]
+    }
   }
 }
 ```
@@ -82,6 +100,7 @@ The following providers are used by this module:
 The following resources are used by this module:
 
 - [azurerm_resource_group.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) (resource)
+- [azurerm_virtual_network.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/virtual_network) (resource)
 - [random_integer.region_index](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/integer) (resource)
 - [azurerm_subscription.current](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/subscription) (data source)
 
