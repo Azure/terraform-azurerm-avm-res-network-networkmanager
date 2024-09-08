@@ -8,6 +8,7 @@ resource "azurerm_network_manager" "this" {
 
   dynamic "scope" {
     for_each = [var.network_manager_scope]
+
     content {
       management_group_ids = scope.value.management_group_ids
       subscription_ids     = scope.value.subscription_ids
@@ -15,6 +16,7 @@ resource "azurerm_network_manager" "this" {
   }
   dynamic "timeouts" {
     for_each = var.network_manager_timeouts == null ? [] : [var.network_manager_timeouts]
+
     content {
       create = timeouts.value.create
       delete = timeouts.value.delete
@@ -81,18 +83,21 @@ resource "azurerm_monitor_diagnostic_setting" "this" {
 
   dynamic "enabled_log" {
     for_each = each.value.log_categories
+
     content {
       category = enabled_log.value
     }
   }
   dynamic "enabled_log" {
     for_each = each.value.log_groups
+
     content {
       category_group = enabled_log.value
     }
   }
   dynamic "metric" {
     for_each = each.value.metric_categories
+
     content {
       category = metric.value
     }
