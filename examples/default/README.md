@@ -6,6 +6,7 @@ This deploys the module in its simplest form.
 ```hcl
 terraform {
   required_version = ">= 1.3.0"
+
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
@@ -45,16 +46,17 @@ resource "azurerm_resource_group" "this" {
 # This is the module call
 module "network_manager" {
   source = "../../"
-  # source             = "Azure/avm-<res/ptn>-<name>/azurerm"
-  # ...
-  enable_telemetry               = var.enable_telemetry
-  name                           = "network-manager"
-  resource_group_name            = azurerm_resource_group.this.name
-  location                       = azurerm_resource_group.this.location
-  network_manager_scope_accesses = ["Connectivity", "SecurityAdmin"]
+
+  location = azurerm_resource_group.this.location
+  name     = "network-manager"
   network_manager_scope = {
     subscription_ids = ["/subscriptions/${data.azurerm_subscription.current.subscription_id}"]
   }
+  network_manager_scope_accesses = ["Connectivity", "SecurityAdmin"]
+  resource_group_name            = azurerm_resource_group.this.name
+  # source             = "Azure/avm-<res/ptn>-<name>/azurerm"
+  # ...
+  enable_telemetry = var.enable_telemetry
 }
 ```
 

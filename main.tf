@@ -2,8 +2,8 @@ resource "azurerm_network_manager" "this" {
   location            = var.location
   name                = var.name
   resource_group_name = var.resource_group_name
-  scope_accesses      = var.network_manager_scope_accesses
   description         = var.network_manager_description
+  scope_accesses      = var.network_manager_scope_accesses
   tags                = var.tags
 
   dynamic "scope" {
