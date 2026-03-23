@@ -249,7 +249,7 @@ Description: This is the full output for the resource.
 
 ### <a name="output_resource_id"></a> [resource\_id](#output\_resource\_id)
 
-Description: This is the full output for the resource.
+Description: Resource id of the resource.
 
 ## Modules
 
