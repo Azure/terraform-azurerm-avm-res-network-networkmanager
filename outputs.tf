@@ -9,6 +9,6 @@ output "resource" {
 }
 
 output "resource_id" {
-  description = "This is the full output for the resource."
+  description = "Resource id of the resource."
   value       = azurerm_network_manager.this.id
 }
