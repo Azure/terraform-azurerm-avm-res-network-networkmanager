@@ -1,14 +1,14 @@
 output "name" {
   description = "The name of the Network Manager."
-  value       = azurerm_network_manager.this
+  value       = azurerm_network_manager.this.name
 }
 
 output "resource" {
-  description = "This is the full output for the resource."
+  description = "The full output for the Network Manager."
   value       = azurerm_network_manager.this
 }
 
 output "resource_id" {
-  description = "This is the full output for the resource."
-  value       = azurerm_network_manager.this
+  description = "The ID of the Network Manager."
+  value       = azurerm_network_manager.this.id
 }

@@ -57,13 +57,13 @@ module "network_manager" {
   # source             = "Azure/avm-<res/ptn>-<name>/azurerm"
   # ...
   enable_telemetry = var.enable_telemetry
-  network_manager_network_groups = {
+  network_groups = {
     "network-group-1" = {
       name = "network-group-1"
       static_members = [
         {
-          name                      = "static-member-1"
-          target_virtual_network_id = azurerm_virtual_network.this.id
+          name               = "static-member-1"
+          target_resource_id = azurerm_virtual_network.this.id
         }
       ]
     }

@@ -1,0 +1,411 @@
+terraform {
+  required_version = ">= 1.9, < 2.0"
+  required_providers {
+    azapi = {
+      source  = "Azure/azapi"
+      version = "~> 2.4"
+    }
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = ">= 3.71, < 5.0.0"
+    }
+    random = {
+      source  = "hashicorp/random"
+      version = "~> 3.5"
+    }
+  }
+}
+
+provider "azurerm" {
+  features {}
+}
+
+# This picks a random region from the list of regions.
+resource "random_integer" "region_index" {
+  max = length(local.azure_regions) - 1
+  min = 0
+}
+
+data "azurerm_subscription" "current" {}
+
+# This ensures we have unique CAF compliant names for our resources.
+module "naming" {
+  source  = "Azure/naming/azurerm"
+  version = "0.4.3"
+}
+
+# This is required for resource modules
+resource "azurerm_resource_group" "this" {
+  location = local.azure_regions[random_integer.region_index.result]
+  name     = module.naming.resource_group.name_unique
+}
+
+resource "azapi_resource" "managed_identity" {
+  name      = module.naming.managed_identity.name_unique
+  parent_id = azurerm_resource_group.this.id
+  type      = "Microsoft.ManagedIdentity/userAssignedIdentities@2024-11-30"
+  location  = azurerm_resource_group.this.location
+}
+
+resource "azapi_resource" "network_hub" {
+  name      = module.naming.virtual_network.name_unique
+  parent_id = azurerm_resource_group.this.id
+  type      = "Microsoft.Network/virtualnetworks@2025-05-01"
+  location  = azurerm_resource_group.this.location
+
+  body = {
+    properties = {
+      addressSpace = {
+        addressPrefixes = [
+          local.ip_space.hub,
+        ]
+      }
+
+      subnets = [
+        {
+          name = module.naming.subnet.name_unique
+          properties = {
+            addressPrefix = local.ip_space.hub
+          }
+        }
+      ]
+    }
+  }
+}
+
+resource "azapi_resource" "network_spokes" {
+  for_each = { for i, cidr in local.ip_space.spokes : i => cidr }
+
+  name      = "${module.naming.virtual_network.name_unique}-${each.key}"
+  parent_id = azurerm_resource_group.this.id
+  type      = "Microsoft.Network/virtualnetworks@2025-05-01"
+  location  = azurerm_resource_group.this.location
+
+  body = {
+    properties = {
+      addressSpace = {
+        addressPrefixes = [
+          each.value,
+        ]
+      }
+
+      subnets = [
+        {
+          name = "${module.naming.subnet.name_unique}-${each.key}"
+          properties = {
+            addressPrefix = each.value
+          }
+        }
+      ]
+    }
+  }
+}
+
+locals {
+  network_manager_expected_resource_id = "${azurerm_resource_group.this.id}/providers/Microsoft.Network/networkManagers/network-manager"
+}
+
+
+# This is the module call
+module "network_manager" {
+  source = "../../"
+
+  location            = azurerm_resource_group.this.location
+  name                = "network-manager"
+  resource_group_name = azurerm_resource_group.this.name
+
+  role_assignments = {
+    network_contributor = {
+      principal_id               = azapi_resource.managed_identity.properties.principalId
+      role_definition_id_or_name = "Network Contributor"
+      principal_type             = "ServicePrincipal"
+    }
+  }
+
+  network_manager_scope = {
+    subscription_ids = ["/subscriptions/${data.azurerm_subscription.current.subscription_id}"]
+  }
+  network_manager_scope_accesses = ["Connectivity", "SecurityAdmin", "Routing"]
+
+  network_groups = {
+    network_group_spokes_1 = {
+      name        = "network-group-spokes-1"
+      description = "This is the first network group."
+      member_type = "VirtualNetwork"
+      static_members = [
+        {
+          name               = "network-spoke-1"
+          target_resource_id = azapi_resource.network_spokes["0"].id
+        },
+        {
+          name               = "network-spoke-2"
+          target_resource_id = azapi_resource.network_spokes["1"].id
+        }
+      ]
+    }
+    network_group_spokes_2 = {
+      name        = "network-group-spokes-2"
+      description = "This is the second network group."
+      member_type = "VirtualNetwork"
+      static_members = [
+        {
+          name               = "default"
+          target_resource_id = azapi_resource.network_spokes["2"].id
+        }
+      ]
+    }
+    network_group_subnets_1 = {
+      name        = "network-group-subnets-1"
+      description = "This is the third network group."
+      member_type = "Subnet"
+      static_members = [
+        {
+          name               = "default"
+          target_resource_id = "${azapi_resource.network_spokes["0"].id}/subnets/${module.naming.subnet.name_unique}-0"
+        },
+        {
+          name               = "default"
+          target_resource_id = "${azapi_resource.network_spokes["1"].id}/subnets/${module.naming.subnet.name_unique}-1"
+        }
+      ]
+    }
+  }
+
+  connectivity_configurations = {
+    hub_spoke_connectivity = {
+      name                  = "hubSpokeConnectivity"
+      description           = "This is the hub-spoke connectivity configuration."
+      connectivity_topology = "HubAndSpoke"
+      connectivity_capabilities = {
+        connected_group_address_overlap        = "Allowed"
+        connected_group_private_endpoint_scale = "Standard"
+        peering_enforced                       = "Enforced"
+      }
+      hubs = [
+        {
+          resource_id   = azapi_resource.network_hub.id
+          resource_type = "Microsoft.Network/virtualNetworks"
+        }
+      ]
+      delete_existing_peering = true
+      is_global               = false
+      applies_to_groups = [
+        {
+          network_group_resource_id = "${local.network_manager_expected_resource_id}/networkGroups/network-group-spokes-1"
+          use_hub_gateway           = false
+          group_connectivity        = "None"
+          is_global                 = false
+        }
+      ]
+    }
+    mesh_connectivity_1 = {
+      name                  = "MeshConnectivity-1"
+      description           = "This is the mesh connectivity configuration."
+      connectivity_topology = "Mesh"
+      connectivity_capabilities = {
+        connected_group_address_overlap        = "Disallowed"
+        connected_group_private_endpoint_scale = "HighScale"
+        peering_enforced                       = "Unenforced"
+      }
+      delete_existing_peering = true
+      is_global               = true
+      applies_to_groups = [
+        {
+          network_group_resource_id = "${local.network_manager_expected_resource_id}/networkGroups/network-group-spokes-2"
+          use_hub_gateway           = false
+          group_connectivity        = "DirectlyConnected"
+          is_global                 = true
+        }
+      ]
+    }
+    mesh_connectivity_2 = {
+      name                  = "MeshConnectivity-2"
+      description           = "This is the second mesh connectivity configuration."
+      connectivity_topology = "Mesh"
+      applies_to_groups = [
+        {
+          network_group_resource_id = "${local.network_manager_expected_resource_id}/networkGroups/network-group-spokes-1"
+          use_hub_gateway           = false
+          group_connectivity        = "DirectlyConnected"
+          is_global                 = false
+        }
+      ]
+      is_global = false
+    }
+  }
+  scope_connections = {
+    scope_connection_test = {
+      name        = "scope-connection-test"
+      description = "This is the first scope connection."
+      resource_id = data.azurerm_subscription.current.subscription_id
+      tenant_id   = data.azurerm_subscription.current.tenant_id
+    }
+  }
+  security_admin_configurations = {
+    test_security_admin_config_1 = {
+      name        = "test-security-admin-config-1"
+      description = "description of the security admin config"
+      apply_on_network_intent_policy_based_services = [
+        "AllowRulesOnly"
+      ]
+      rule_collections = [
+        {
+          name        = "test-rule-collection-1"
+          description = "test-rule-collection-description"
+          applies_to_groups = [
+            {
+              network_group_resource_id = "${local.network_manager_expected_resource_id}/networkGroups/network-group-spokes-1"
+            }
+          ]
+          rules = [
+            {
+              name        = "test-inbound-allow-rule-1"
+              description = "test-inbound-allow-rule-1-description"
+              access      = "Allow"
+              direction   = "Inbound"
+              priority    = 150
+              protocol    = "Tcp"
+            },
+            {
+              name        = "test-outbound-deny-rule-2"
+              description = "test-outbound-deny-rule-2-description"
+              access      = "Deny"
+              direction   = "Outbound"
+              priority    = 200
+              protocol    = "Tcp"
+              source_port_ranges = [
+                "80",
+                "442-445"
+              ]
+              sources = [
+                {
+                  address_prefix      = "AppService.WestEurope"
+                  address_prefix_type = "ServiceTag"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          name = "test-rule-collection-2"
+          applies_to_groups = [
+            {
+              network_group_resource_id = "${local.network_manager_expected_resource_id}/networkGroups/network-group-spokes-2"
+            },
+            {
+              network_group_resource_id = "${local.network_manager_expected_resource_id}/networkGroups/network-group-spokes-3"
+            }
+          ]
+          rules = [
+            {
+              name      = "test-inbound-allow-rule-3"
+              access    = "Allow"
+              direction = "Inbound"
+              destination_port_ranges = [
+                "80",
+                "442-445"
+              ]
+              destinations = [
+                {
+                  address_prefix      = "192.168.20.20"
+                  address_prefix_type = "IPPrefix"
+                }
+              ]
+              priority = 250
+              protocol = "Tcp"
+            },
+            {
+              name        = "test-inbound-allow-rule-4"
+              description = "test-inbound-allow-rule-4-description"
+              access      = "Allow"
+              direction   = "Inbound"
+              sources = [
+                {
+                  address_prefix      = "10.0.0.0/24"
+                  address_prefix_type = "IPPrefix"
+                },
+                {
+                  address_prefix      = "100.100.100.100"
+                  address_prefix_type = "IPPrefix"
+                }
+              ]
+              destinations = [
+                {
+                  address_prefix      = "172.16.0.0/24"
+                  address_prefix_type = "IPPrefix"
+                },
+                {
+                  address_prefix      = "172.16.1.0/24"
+                  address_prefix_type = "IPPrefix"
+                }
+              ]
+              priority = 260
+              protocol = "Tcp"
+            }
+          ]
+        }
+      ]
+    }
+  }
+
+  routing_configurations = {
+    test_routing_config_1 = {
+      name                   = "test-routing-config-1"
+      description            = "description of the routing config"
+      route_table_usage_mode = "ManagedOnly"
+    }
+    test_routing_config_2 = {
+      name                   = "test-routing-config-2"
+      route_table_usage_mode = "UseExisting"
+      rule_collections = [
+        {
+          name = "test-routing-rule-collection-1-subnet"
+          applies_to = [
+            {
+              network_group_resource_id = "${local.network_manager_expected_resource_id}/networkGroups/network-groups-subnets-1"
+            }
+          ]
+          disable_bgp_route_propagation = false
+          rules = [
+            {
+              name = "test-routing-rule-1"
+              destination = {
+                destination_address = "AzureCloud"
+                type                = "ServiceTag"
+              }
+              next_hop = {
+                next_hop_type = "VnetLocal"
+              }
+            },
+            {
+              name = "test-routing-rule-2"
+              destination = {
+                destination_address = "10.10.10.10/32"
+                type                = "AddressPrefix"
+              }
+              next_hop = {
+                next_hop_type    = "VirtualAppliance"
+                next_hop_address = "192.168.1.1"
+              }
+            }
+          ]
+        }
+      ]
+    }
+    test_routing_config_3 = {
+      name = "test-routing-config-3"
+      rule_collections = [
+        {
+          name = "test-routing-rule-collection-2-virtual-network"
+          applies_to = [
+            {
+              network_group_resource_id = "${local.network_manager_expected_resource_id}/networkGroups/network-group-spokes-1"
+            }
+          ]
+        }
+      ]
+    }
+  }
+
+  enable_telemetry = var.enable_telemetry
+}
