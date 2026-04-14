@@ -46,13 +46,13 @@ Type: `string`
 
 ### <a name="input_rule_collections"></a> [rule\_collections](#input\_rule\_collections)
 
-Description:   (Optional) A list of rule collections to create on the routing configuration.
+Description:   (Optional) A map of rule collections to create on the routing configuration.
   - `name` - (Required) The name of the rule collection.
   - `description` - (Optional) The description of the rule collection.
   - `applies_to` - (Required) A list of network groups that the rule collection applies to.
-    - `network_group_resource_id` - (Required) The resource ID of the network group that the rule collection applies to.
+    - `network_group_id` - (Required) The ID of the network group that the rule collection applies to.
   - `disable_bgp_route_propagation` - (Optional) A boolean value indicating whether or not to disable BGP route propagation for this rule collection. Defaults to false.
-  - `rules` - (Required) A list of rules to create on the rule collection.
+  - `rules` - (Required) A map of rules to create on the rule collection.
     - `name` - (Required) The name of the rule.
     - `description` - (Optional) The description of the rule.
     - `destination` - (Required) The destination for the route.
@@ -65,14 +65,14 @@ Description:   (Optional) A list of rule collections to create on the routing co
 Type:
 
 ```hcl
-list(object({
+map(object({
     name        = string
     description = optional(string, null)
     applies_to = list(object({
-      network_group_resource_id = string
+      network_group_id = string
     }))
     disable_bgp_route_propagation = optional(bool, null)
-    rules = list(object({
+    rules = map(object({
       name        = string
       description = optional(string, null)
       destination = object({
