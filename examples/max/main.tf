@@ -43,7 +43,7 @@ resource "azurerm_resource_group" "this" {
 
 resource "azapi_resource" "managed_identity" {
   location  = azurerm_resource_group.this.location
-  name      = module.naming.managed_identity.name_unique
+  name      = module.naming.user_assigned_identity.name_unique
   parent_id = azurerm_resource_group.this.id
   type      = "Microsoft.ManagedIdentity/userAssignedIdentities@2024-11-30"
 }
@@ -122,9 +122,9 @@ module "network_manager" {
       description           = "This is the hub-spoke connectivity configuration."
       connectivity_topology = "HubAndSpoke"
       connectivity_capabilities = {
-        connected_group_address_overlap        = "Allowed"
-        connected_group_private_endpoint_scale = "Standard"
-        peering_enforced                       = "Enforced"
+        connected_group_address_overlap         = "Allowed"
+        connected_group_private_endpoints_scale = "Standard"
+        peering_enforcement                     = "Enforced"
       }
       hubs = [
         {
@@ -136,10 +136,10 @@ module "network_manager" {
       is_global               = false
       applies_to_groups = [
         {
-          network_group_resource_id = "${local.network_manager_expected_resource_id}/networkGroups/network-group-spokes-1"
-          use_hub_gateway           = false
-          group_connectivity        = "None"
-          is_global                 = false
+          network_group_id   = "${local.network_manager_expected_resource_id}/networkGroups/network-group-spokes-1"
+          use_hub_gateway    = false
+          group_connectivity = "None"
+          is_global          = false
         }
       ]
     }
@@ -148,18 +148,18 @@ module "network_manager" {
       description           = "This is the mesh connectivity configuration."
       connectivity_topology = "Mesh"
       connectivity_capabilities = {
-        connected_group_address_overlap        = "Disallowed"
-        connected_group_private_endpoint_scale = "HighScale"
-        peering_enforced                       = "Unenforced"
+        connected_group_address_overlap         = "Disallowed"
+        connected_group_private_endpoints_scale = "HighScale"
+        peering_enforcement                     = "Unenforced"
       }
       delete_existing_peering = true
       is_global               = true
       applies_to_groups = [
         {
-          network_group_resource_id = "${local.network_manager_expected_resource_id}/networkGroups/network-group-spokes-2"
-          use_hub_gateway           = false
-          group_connectivity        = "DirectlyConnected"
-          is_global                 = true
+          network_group_id   = "${local.network_manager_expected_resource_id}/networkGroups/network-group-spokes-2"
+          use_hub_gateway    = false
+          group_connectivity = "DirectlyConnected"
+          is_global          = true
         }
       ]
     }
@@ -169,10 +169,10 @@ module "network_manager" {
       connectivity_topology = "Mesh"
       applies_to_groups = [
         {
-          network_group_resource_id = "${local.network_manager_expected_resource_id}/networkGroups/network-group-spokes-1"
-          use_hub_gateway           = false
-          group_connectivity        = "DirectlyConnected"
-          is_global                 = false
+          network_group_id   = "${local.network_manager_expected_resource_id}/networkGroups/network-group-spokes-1"
+          use_hub_gateway    = false
+          group_connectivity = "DirectlyConnected"
+          is_global          = false
         }
       ]
       is_global = false
@@ -212,11 +212,11 @@ module "network_manager" {
       member_type = "Subnet"
       static_members = [
         {
-          name               = "default"
+          name               = "default1"
           target_resource_id = "${azapi_resource.network_spokes["0"].id}/subnets/${module.naming.subnet.name_unique}-0"
         },
         {
-          name               = "default"
+          name               = "default2"
           target_resource_id = "${azapi_resource.network_spokes["1"].id}/subnets/${module.naming.subnet.name_unique}-1"
         }
       ]
@@ -224,7 +224,7 @@ module "network_manager" {
   }
   role_assignments = {
     network_contributor = {
-      principal_id               = azapi_resource.managed_identity.properties.principalId
+      principal_id               = azapi_resource.managed_identity.output.properties.principalId
       role_definition_id_or_name = "Network Contributor"
       principal_type             = "ServicePrincipal"
     }
@@ -238,17 +238,17 @@ module "network_manager" {
     test_routing_config_2 = {
       name                   = "test-routing-config-2"
       route_table_usage_mode = "UseExisting"
-      rule_collections = [
-        {
+      rule_collections = {
+        test_routing_rule_collection_1_subnet = {
           name = "test-routing-rule-collection-1-subnet"
           applies_to = [
             {
-              network_group_resource_id = "${local.network_manager_expected_resource_id}/networkGroups/network-groups-subnets-1"
+              network_group_id = "${local.network_manager_expected_resource_id}/networkGroups/network-groups-subnets-1"
             }
           ]
           disable_bgp_route_propagation = false
-          rules = [
-            {
+          rules = {
+            test_routing_rule_1 = {
               name = "test-routing-rule-1"
               destination = {
                 destination_address = "AzureCloud"
@@ -258,7 +258,7 @@ module "network_manager" {
                 next_hop_type = "VnetLocal"
               }
             },
-            {
+            test_routing_rule_2 = {
               name = "test-routing-rule-2"
               destination = {
                 destination_address = "10.10.10.10/32"
@@ -269,22 +269,34 @@ module "network_manager" {
                 next_hop_address = "192.168.1.1"
               }
             }
-          ]
+          }
         }
-      ]
+      }
     }
     test_routing_config_3 = {
       name = "test-routing-config-3"
-      rule_collections = [
-        {
+      rule_collections = {
+        test_routing_rule_collection_2_virtual_network = {
           name = "test-routing-rule-collection-2-virtual-network"
           applies_to = [
             {
-              network_group_resource_id = "${local.network_manager_expected_resource_id}/networkGroups/network-group-spokes-1"
+              network_group_id = "${local.network_manager_expected_resource_id}/networkGroups/network-group-spokes-1"
             }
           ]
+          rules = {
+            test_routing_rule_3 = {
+              name = "test-routing-rule-3"
+              destination = {
+                destination_address = "AppService.WestEurope"
+                type                = "ServiceTag"
+              }
+              next_hop = {
+                next_hop_type = "Internet"
+              }
+            }
+          }
         }
-      ]
+      }
     }
   }
   scope_connections = {
@@ -302,25 +314,25 @@ module "network_manager" {
       apply_on_network_intent_policy_based_services = [
         "AllowRulesOnly"
       ]
-      rule_collections = [
-        {
+      rule_collections = {
+        test_rule_collection_1 = {
           name        = "test-rule-collection-1"
           description = "test-rule-collection-description"
           applies_to_groups = [
             {
-              network_group_resource_id = "${local.network_manager_expected_resource_id}/networkGroups/network-group-spokes-1"
+              network_group_id = "${local.network_manager_expected_resource_id}/networkGroups/network-group-spokes-1"
             }
           ]
-          rules = [
-            {
+          rules = {
+            test_inbound_allow_rule_1 = {
               name        = "test-inbound-allow-rule-1"
               description = "test-inbound-allow-rule-1-description"
               access      = "Allow"
               direction   = "Inbound"
               priority    = 150
               protocol    = "Tcp"
-            },
-            {
+            }
+            test_outbound_deny_rule_2 = {
               name        = "test-outbound-deny-rule-2"
               description = "test-outbound-deny-rule-2-description"
               access      = "Deny"
@@ -338,20 +350,20 @@ module "network_manager" {
                 }
               ]
             }
-          ]
-        },
-        {
+          }
+        }
+        test_rule_collection_2 = {
           name = "test-rule-collection-2"
           applies_to_groups = [
             {
-              network_group_resource_id = "${local.network_manager_expected_resource_id}/networkGroups/network-group-spokes-2"
+              network_group_id = "${local.network_manager_expected_resource_id}/networkGroups/network-group-spokes-2"
             },
             {
-              network_group_resource_id = "${local.network_manager_expected_resource_id}/networkGroups/network-group-spokes-3"
+              network_group_id = "${local.network_manager_expected_resource_id}/networkGroups/network-group-spokes-3"
             }
           ]
-          rules = [
-            {
+          rules = {
+            test_inbound_allow_rule_3 = {
               name      = "test-inbound-allow-rule-3"
               access    = "Allow"
               direction = "Inbound"
@@ -367,8 +379,8 @@ module "network_manager" {
               ]
               priority = 250
               protocol = "Tcp"
-            },
-            {
+            }
+            test_inbound_allow_rule_4 = {
               name        = "test-inbound-allow-rule-4"
               description = "test-inbound-allow-rule-4-description"
               access      = "Allow"
@@ -396,9 +408,9 @@ module "network_manager" {
               priority = 260
               protocol = "Tcp"
             }
-          ]
+          }
         }
-      ]
+      }
     }
   }
 }

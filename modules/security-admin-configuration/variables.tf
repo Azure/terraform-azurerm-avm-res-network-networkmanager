@@ -45,13 +45,13 @@ variable "network_manager_id" {
 }
 
 variable "rule_collections" {
-  type = list(object({
+  type = map(object({
     name        = string
     description = optional(string, null)
     applies_to_groups = list(object({
-      network_group_resource_id = string
+      network_group_id = string
     }))
-    rules = list(object({
+    rules = map(object({
       name                    = string
       access                  = string
       description             = optional(string, null)
@@ -71,12 +71,12 @@ variable "rule_collections" {
     }))
   }))
   description = <<DESCRIPTION
-  (Optional) A list of rule collections to create on the security admin configuration.
+  (Optional) A map of rule collections to create on the security admin configuration. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
     - `name` - (Required) The name of the rule collection.
     - `description` - (Optional) The description of the rule collection.
     - `applies_to_groups` - (Required) A list of network groups that the rule collection applies to.
-      - `network_group_resource_id` - (Required) The resource ID of the network group that the rule collection applies to.
-    - `rules` - (Required) A list of rules to create on the rule collection.
+      - `network_group_id` - (Required) The resource ID of the network group that the rule collection applies to.
+    - `rules` - (Required) A map of rules to create on the rule collection. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
       - `name` - (Required) The name of the rule.
       - `access` - (Required) The access type of the rule. Possible values are `Allow`, `AlwaysAllow` and `Deny`.
       - `description` - (Optional) The description of the rule.
@@ -102,7 +102,7 @@ variable "network_group_address_space_aggregation_option" {
   DESCRIPTION
 
   validation {
-    condition     = contains(["None", "Manual"], var.network_group_address_space_aggregation_option)
+    condition     = contains(["None", "Manual"], coalesce(var.network_group_address_space_aggregation_option, "None"))
     error_message = "The value must be either 'None' or 'Manual'."
   }
 }

@@ -1,15 +1,15 @@
 variable "applies_to_groups" {
   type = list(object({
-    group_connectivity        = string
-    is_global                 = optional(bool, null)
-    network_group_resource_id = string
-    use_hub_gateway           = optional(bool, null)
+    group_connectivity = string
+    is_global          = optional(bool, null)
+    network_group_id   = string
+    use_hub_gateway    = optional(bool, null)
   }))
   description = <<DESCRIPTION
   (Required) A list of network groups that the connectivity configuration applies to.
   - `group_connectivity` - (Required) The type of connectivity for the group. `DirectlyConnected` and `None`.
-  - `is_global` - (Optional) A boolean value indicating whether the connectivity configuration applies to all network groups in the Network Manager. If set to true, then the connectivity configuration applies to all network groups and the `network_group_resource_id` property is ignored. Defaults to false.
-  - `network_group_resource_id` - (Required) The resource ID of the network group that the connectivity configuration applies to. This property is required if `is_global` is set to false.
+  - `is_global` - (Optional) A boolean value indicating whether the connectivity configuration applies to all network groups in the Network Manager. If set to true, then the connectivity configuration applies to all network groups and the `network_group_id` property is ignored. Defaults to false.
+  - `network_group_id` - (Required) The resource ID of the network group that the connectivity configuration applies to. This property is required if `is_global` is set to false.
   - `use_hub_gateway` - (Optional) A boolean value indicating whether or not to use a hub gateway for this connectivity configuration. This is only applicable if the topology is set to `HubAndSpoke`. Defaults to false.
   DESCRIPTION
   nullable    = false
@@ -17,15 +17,15 @@ variable "applies_to_groups" {
 
 variable "connectivity_capabilities" {
   type = object({
-    connected_group_address_overlap        = string
-    connected_group_private_endpoint_scale = string
-    peering_enforced                       = string
+    connected_group_address_overlap         = string
+    connected_group_private_endpoints_scale = string
+    peering_enforcement                     = string
   })
   description = <<DESCRIPTION
   (Optional) A set of connectivity capabilities for the connectivity configuration.
   - `connected_group_address_overlap` - (Optional) The connectivity configuration's capability for connected group address overlap. Possible values are `Allowed` and `Disallowed`.
-  - `connected_group_private_endpoint_scale` - (Optional) The connectivity configuration's capability for connected group private endpoint scale. Possible values are `HighScale` and `Standard`.
-  - `peering_enforced` - (Optional) The connectivity configuration's capability for peering enforcement. Possible values are `Enforced` and `Unenforced`.
+  - `connected_group_private_endpoints_scale` - (Optional) The connectivity configuration's capability for connected group private endpoint scale. Possible values are `HighScale` and `Standard`.
+  - `peering_enforcement` - (Optional) The connectivity configuration's capability for peering enforcement. Possible values are `Enforced` and `Unenforced`.
   DESCRIPTION
 }
 
