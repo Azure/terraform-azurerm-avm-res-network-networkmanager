@@ -27,72 +27,67 @@ resource "azurerm_network_manager" "this" {
 }
 
 module "network_groups" {
-  source = "./modules/network-group"
-
+  source   = "./modules/network-group"
   for_each = var.network_groups
 
-  network_manager_id = azurerm_network_manager.this.id
-  name               = each.value.name
   description        = each.value.description
   member_type        = each.value.member_type
+  name               = each.value.name
+  network_manager_id = azurerm_network_manager.this.id
   static_members     = each.value.static_members
 }
 
 module "connectivity_configuration" {
-  source = "./modules/connectivity-configuration"
-
+  source   = "./modules/connectivity-configuration"
   for_each = var.connectivity_configurations
 
-  network_manager_id        = azurerm_network_manager.this.id
-  name                      = each.value.name
-  description               = each.value.description
   applies_to_groups         = each.value.applies_to_groups
   connectivity_capabilities = each.value.connectivity_capabilities
   connectivity_topology     = each.value.connectivity_topology
-  delete_existing_peering   = each.value.delete_existing_peering
+  description               = each.value.description
   hubs                      = each.value.hubs
+  name                      = each.value.name
+  network_manager_id        = azurerm_network_manager.this.id
+  delete_existing_peering   = each.value.delete_existing_peering
   is_global                 = each.value.is_global
 
   depends_on = [module.network_groups]
 }
 
 module "scope_connection" {
-  source = "./modules/scope-connection"
-
+  source   = "./modules/scope-connection"
   for_each = var.scope_connections
 
-  network_manager_id = azurerm_network_manager.this.id
-  name               = each.value.name
   description        = each.value.description
+  name               = each.value.name
+  network_manager_id = azurerm_network_manager.this.id
   resource_id        = each.value.resource_id
   tenant_id          = each.value.tenant_id
 }
 
 module "security_admin_configuration" {
-  source = "./modules/security-admin-configuration"
-
+  source   = "./modules/security-admin-configuration"
   for_each = var.security_admin_configurations
 
-  network_manager_id                             = azurerm_network_manager.this.id
-  name                                           = each.value.name
-  description                                    = each.value.description
   apply_on_network_intent_policy_based_services  = each.value.apply_on_network_intent_policy_based_services
-  network_group_address_space_aggregation_option = each.value.network_group_address_space_aggregation_option
+  description                                    = each.value.description
+  name                                           = each.value.name
+  network_manager_id                             = azurerm_network_manager.this.id
   rule_collections                               = each.value.rule_collections
+  network_group_address_space_aggregation_option = each.value.network_group_address_space_aggregation_option
 
   depends_on = [module.network_groups]
 }
 
 module "routing_configuration" {
-  source = "./modules/routing-configuration"
-
+  source   = "./modules/routing-configuration"
   for_each = var.routing_configurations
 
-  network_manager_id     = azurerm_network_manager.this.id
-  name                   = each.value.name
   description            = each.value.description
-  route_table_usage_mode = each.value.route_table_usage_mode
+  name                   = each.value.name
+  network_manager_id     = azurerm_network_manager.this.id
   rule_collections       = each.value.rule_collections
+  route_table_usage_mode = each.value.route_table_usage_mode
 
   depends_on = [module.network_groups]
 }

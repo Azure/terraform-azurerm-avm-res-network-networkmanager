@@ -1,5 +1,6 @@
 terraform {
   required_version = ">= 1.9, < 2.0"
+
   required_providers {
     azapi = {
       source  = "Azure/azapi"
@@ -41,18 +42,17 @@ resource "azurerm_resource_group" "this" {
 }
 
 resource "azapi_resource" "managed_identity" {
+  location  = azurerm_resource_group.this.location
   name      = module.naming.managed_identity.name_unique
   parent_id = azurerm_resource_group.this.id
   type      = "Microsoft.ManagedIdentity/userAssignedIdentities@2024-11-30"
-  location  = azurerm_resource_group.this.location
 }
 
 resource "azapi_resource" "network_hub" {
+  location  = azurerm_resource_group.this.location
   name      = module.naming.virtual_network.name_unique
   parent_id = azurerm_resource_group.this.id
   type      = "Microsoft.Network/virtualnetworks@2025-05-01"
-  location  = azurerm_resource_group.this.location
-
   body = {
     properties = {
       addressSpace = {
@@ -76,11 +76,10 @@ resource "azapi_resource" "network_hub" {
 resource "azapi_resource" "network_spokes" {
   for_each = { for i, cidr in local.ip_space.spokes : i => cidr }
 
+  location  = azurerm_resource_group.this.location
   name      = "${module.naming.virtual_network.name_unique}-${each.key}"
   parent_id = azurerm_resource_group.this.id
   type      = "Microsoft.Network/virtualnetworks@2025-05-01"
-  location  = azurerm_resource_group.this.location
-
   body = {
     properties = {
       addressSpace = {
@@ -110,67 +109,13 @@ locals {
 module "network_manager" {
   source = "../../"
 
-  location            = azurerm_resource_group.this.location
-  name                = "network-manager"
-  resource_group_name = azurerm_resource_group.this.name
-
-  role_assignments = {
-    network_contributor = {
-      principal_id               = azapi_resource.managed_identity.properties.principalId
-      role_definition_id_or_name = "Network Contributor"
-      principal_type             = "ServicePrincipal"
-    }
-  }
-
+  location = azurerm_resource_group.this.location
+  name     = "network-manager"
   network_manager_scope = {
     subscription_ids = ["/subscriptions/${data.azurerm_subscription.current.subscription_id}"]
   }
   network_manager_scope_accesses = ["Connectivity", "SecurityAdmin", "Routing"]
-
-  network_groups = {
-    network_group_spokes_1 = {
-      name        = "network-group-spokes-1"
-      description = "This is the first network group."
-      member_type = "VirtualNetwork"
-      static_members = [
-        {
-          name               = "network-spoke-1"
-          target_resource_id = azapi_resource.network_spokes["0"].id
-        },
-        {
-          name               = "network-spoke-2"
-          target_resource_id = azapi_resource.network_spokes["1"].id
-        }
-      ]
-    }
-    network_group_spokes_2 = {
-      name        = "network-group-spokes-2"
-      description = "This is the second network group."
-      member_type = "VirtualNetwork"
-      static_members = [
-        {
-          name               = "default"
-          target_resource_id = azapi_resource.network_spokes["2"].id
-        }
-      ]
-    }
-    network_group_subnets_1 = {
-      name        = "network-group-subnets-1"
-      description = "This is the third network group."
-      member_type = "Subnet"
-      static_members = [
-        {
-          name               = "default"
-          target_resource_id = "${azapi_resource.network_spokes["0"].id}/subnets/${module.naming.subnet.name_unique}-0"
-        },
-        {
-          name               = "default"
-          target_resource_id = "${azapi_resource.network_spokes["1"].id}/subnets/${module.naming.subnet.name_unique}-1"
-        }
-      ]
-    }
-  }
-
+  resource_group_name            = azurerm_resource_group.this.name
   connectivity_configurations = {
     hub_spoke_connectivity = {
       name                  = "hubSpokeConnectivity"
@@ -231,6 +176,115 @@ module "network_manager" {
         }
       ]
       is_global = false
+    }
+  }
+  enable_telemetry = var.enable_telemetry
+  network_groups = {
+    network_group_spokes_1 = {
+      name        = "network-group-spokes-1"
+      description = "This is the first network group."
+      member_type = "VirtualNetwork"
+      static_members = [
+        {
+          name               = "network-spoke-1"
+          target_resource_id = azapi_resource.network_spokes["0"].id
+        },
+        {
+          name               = "network-spoke-2"
+          target_resource_id = azapi_resource.network_spokes["1"].id
+        }
+      ]
+    }
+    network_group_spokes_2 = {
+      name        = "network-group-spokes-2"
+      description = "This is the second network group."
+      member_type = "VirtualNetwork"
+      static_members = [
+        {
+          name               = "default"
+          target_resource_id = azapi_resource.network_spokes["2"].id
+        }
+      ]
+    }
+    network_group_subnets_1 = {
+      name        = "network-group-subnets-1"
+      description = "This is the third network group."
+      member_type = "Subnet"
+      static_members = [
+        {
+          name               = "default"
+          target_resource_id = "${azapi_resource.network_spokes["0"].id}/subnets/${module.naming.subnet.name_unique}-0"
+        },
+        {
+          name               = "default"
+          target_resource_id = "${azapi_resource.network_spokes["1"].id}/subnets/${module.naming.subnet.name_unique}-1"
+        }
+      ]
+    }
+  }
+  role_assignments = {
+    network_contributor = {
+      principal_id               = azapi_resource.managed_identity.properties.principalId
+      role_definition_id_or_name = "Network Contributor"
+      principal_type             = "ServicePrincipal"
+    }
+  }
+  routing_configurations = {
+    test_routing_config_1 = {
+      name                   = "test-routing-config-1"
+      description            = "description of the routing config"
+      route_table_usage_mode = "ManagedOnly"
+    }
+    test_routing_config_2 = {
+      name                   = "test-routing-config-2"
+      route_table_usage_mode = "UseExisting"
+      rule_collections = [
+        {
+          name = "test-routing-rule-collection-1-subnet"
+          applies_to = [
+            {
+              network_group_resource_id = "${local.network_manager_expected_resource_id}/networkGroups/network-groups-subnets-1"
+            }
+          ]
+          disable_bgp_route_propagation = false
+          rules = [
+            {
+              name = "test-routing-rule-1"
+              destination = {
+                destination_address = "AzureCloud"
+                type                = "ServiceTag"
+              }
+              next_hop = {
+                next_hop_type = "VnetLocal"
+              }
+            },
+            {
+              name = "test-routing-rule-2"
+              destination = {
+                destination_address = "10.10.10.10/32"
+                type                = "AddressPrefix"
+              }
+              next_hop = {
+                next_hop_type    = "VirtualAppliance"
+                next_hop_address = "192.168.1.1"
+              }
+            }
+          ]
+        }
+      ]
+    }
+    test_routing_config_3 = {
+      name = "test-routing-config-3"
+      rule_collections = [
+        {
+          name = "test-routing-rule-collection-2-virtual-network"
+          applies_to = [
+            {
+              network_group_resource_id = "${local.network_manager_expected_resource_id}/networkGroups/network-group-spokes-1"
+            }
+          ]
+        }
+      ]
     }
   }
   scope_connections = {
@@ -347,65 +401,4 @@ module "network_manager" {
       ]
     }
   }
-
-  routing_configurations = {
-    test_routing_config_1 = {
-      name                   = "test-routing-config-1"
-      description            = "description of the routing config"
-      route_table_usage_mode = "ManagedOnly"
-    }
-    test_routing_config_2 = {
-      name                   = "test-routing-config-2"
-      route_table_usage_mode = "UseExisting"
-      rule_collections = [
-        {
-          name = "test-routing-rule-collection-1-subnet"
-          applies_to = [
-            {
-              network_group_resource_id = "${local.network_manager_expected_resource_id}/networkGroups/network-groups-subnets-1"
-            }
-          ]
-          disable_bgp_route_propagation = false
-          rules = [
-            {
-              name = "test-routing-rule-1"
-              destination = {
-                destination_address = "AzureCloud"
-                type                = "ServiceTag"
-              }
-              next_hop = {
-                next_hop_type = "VnetLocal"
-              }
-            },
-            {
-              name = "test-routing-rule-2"
-              destination = {
-                destination_address = "10.10.10.10/32"
-                type                = "AddressPrefix"
-              }
-              next_hop = {
-                next_hop_type    = "VirtualAppliance"
-                next_hop_address = "192.168.1.1"
-              }
-            }
-          ]
-        }
-      ]
-    }
-    test_routing_config_3 = {
-      name = "test-routing-config-3"
-      rule_collections = [
-        {
-          name = "test-routing-rule-collection-2-virtual-network"
-          applies_to = [
-            {
-              network_group_resource_id = "${local.network_manager_expected_resource_id}/networkGroups/network-group-spokes-1"
-            }
-          ]
-        }
-      ]
-    }
-  }
-
-  enable_telemetry = var.enable_telemetry
 }

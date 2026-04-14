@@ -12,7 +12,6 @@ locals {
     "eastasia",
     "southeastasia",
   ]
-
   ip_space = {
     hub = "10.0.0.0/24"
     spokes = [

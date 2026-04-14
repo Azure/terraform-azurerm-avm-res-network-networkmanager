@@ -1,20 +1,13 @@
-variable "network_manager_id" {
-  type        = string
+variable "apply_on_network_intent_policy_based_services" {
+  type        = list(string)
   description = <<DESCRIPTION
-  (Required) The ID of the Network Manager to which this Security Admin Configuration belongs.
+  (Required) A list of network intent policy-based services that the security admin configuration applies to. Possible values are `All`, `AllowRulesOnly` and `None`.
   DESCRIPTION
   nullable    = false
-}
 
-variable "name" {
-  type        = string
-  description = <<DESCRIPTION
-  (Required) The name of the Security Admin Configuration. The name must be between 1 and 80 characters, and can contain letters, numbers, underscores, periods, and hyphens. The name must start with a letter or a number, and end with a letter, a number, or an underscore.
-  DESCRIPTION
-  nullable    = false
   validation {
-    condition     = length(var.name) <= 64
-    error_message = "The name must be 64 characters or less."
+    condition     = contains(["All", "AllowRulesOnly", "None"], var.apply_on_network_intent_policy_based_services...)
+    error_message = "Each value in the list must be one of 'All', 'AllowRulesOnly', or 'None'."
   }
 }
 
@@ -23,34 +16,32 @@ variable "description" {
   description = <<DESCRIPTION
   (Optional) The description of the Security Admin Configuration. The description must be between 0 and 255 characters, and can contain letters, numbers, underscores, periods, and hyphens. The description must start with a letter or a number, and end with a letter, a number, or an underscore.
   DESCRIPTION
+
   validation {
     condition     = length(var.description) <= 500
     error_message = "The description must be 500 characters or less."
   }
 }
 
-variable "apply_on_network_intent_policy_based_services" {
-  type        = list(string)
+variable "name" {
+  type        = string
   description = <<DESCRIPTION
-  (Required) A list of network intent policy-based services that the security admin configuration applies to. Possible values are `All`, `AllowRulesOnly` and `None`.
+  (Required) The name of the Security Admin Configuration. The name must be between 1 and 80 characters, and can contain letters, numbers, underscores, periods, and hyphens. The name must start with a letter or a number, and end with a letter, a number, or an underscore.
   DESCRIPTION
   nullable    = false
+
   validation {
-    condition     = contains(["All", "AllowRulesOnly", "None"], var.apply_on_network_intent_policy_based_services...)
-    error_message = "Each value in the list must be one of 'All', 'AllowRulesOnly', or 'None'."
+    condition     = length(var.name) <= 64
+    error_message = "The name must be 64 characters or less."
   }
 }
 
-variable "network_group_address_space_aggregation_option" {
+variable "network_manager_id" {
   type        = string
   description = <<DESCRIPTION
-  (Optional) The network group address space aggregation option for the security admin configuration. Possible values are `None`, and `Manual`.
+  (Required) The ID of the Network Manager to which this Security Admin Configuration belongs.
   DESCRIPTION
-  default     = "None"
-  validation {
-    condition     = contains(["None", "Manual"], var.network_group_address_space_aggregation_option)
-    error_message = "The value must be either 'None' or 'Manual'."
-  }
+  nullable    = false
 }
 
 variable "rule_collections" {
@@ -101,4 +92,17 @@ variable "rule_collections" {
         - `address_prefix_type` - (Required) The type of address prefix. Possible values are `IPPrefix`, `ServiceTag`.
         - `address_prefix` - (Required) The address prefix. If the address prefix type is IPPrefix, then this must be a valid CIDR notation. If the address prefix type is ServiceTag, then this must be a valid service tag.
   DESCRIPTION
+}
+
+variable "network_group_address_space_aggregation_option" {
+  type        = string
+  default     = "None"
+  description = <<DESCRIPTION
+  (Optional) The network group address space aggregation option for the security admin configuration. Possible values are `None`, and `Manual`.
+  DESCRIPTION
+
+  validation {
+    condition     = contains(["None", "Manual"], var.network_group_address_space_aggregation_option)
+    error_message = "The value must be either 'None' or 'Manual'."
+  }
 }

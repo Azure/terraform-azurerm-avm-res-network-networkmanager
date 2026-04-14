@@ -7,6 +7,7 @@ This example shows how to create a network group and add a static member to it.
 ```hcl
 terraform {
   required_version = ">= 1.9, < 2.0"
+
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
@@ -64,13 +65,13 @@ module "network_manager" {
   # source             = "Azure/avm-<res/ptn>-<name>/azurerm"
   # ...
   enable_telemetry = var.enable_telemetry
-  network_manager_network_groups = {
+  network_groups = {
     "network-group-1" = {
       name = "network-group-1"
       static_members = [
         {
-          name                      = "static-member-1"
-          target_virtual_network_id = azurerm_virtual_network.this.id
+          name               = "static-member-1"
+          target_resource_id = azurerm_virtual_network.this.id
         }
       ]
     }
@@ -109,9 +110,9 @@ The following input variables are optional (have default values):
 
 ### <a name="input_enable_telemetry"></a> [enable\_telemetry](#input\_enable\_telemetry)
 
-Description: This variable controls whether or not telemetry is enabled for the module.  
-For more information see https://aka.ms/avm/telemetryinfo.  
-If it is set to false, then no telemetry will be collected.
+Description:   This variable controls whether or not telemetry is enabled for the module.  
+  For more information see https://aka.ms/avm/telemetryinfo.  
+  If it is set to false, then no telemetry will be collected.
 
 Type: `bool`
 
