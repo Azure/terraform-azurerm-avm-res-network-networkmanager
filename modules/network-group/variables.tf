@@ -21,13 +21,14 @@ variable "network_manager_id" {
 
 variable "description" {
   type        = string
-  default     = null
+  default     = ""
   description = <<DESCRIPTION
   (Optional) The description of the network group.
   DESCRIPTION
+  nullable    = false
 
   validation {
-    condition     = var.description == null ? true : length(var.description) <= 500
+    condition     = length(var.description) <= 500
     error_message = "The Description can be up to 500 characters in length."
   }
 }

@@ -21,13 +21,14 @@ variable "network_manager_id" {
 
 variable "description" {
   type        = string
-  default     = null
+  default     = ""
   description = <<DESCRIPTION
   (Optional) The description of the Routing Configuration. The description must be between 0 and 500 characters, and can contain letters, numbers, underscores, periods, and hyphens. The description must start with a letter or a number, and end with a letter, a number, or an underscore.
   DESCRIPTION
+  nullable    = false
 
   validation {
-    condition     = var.description == null ? true : length(var.description) <= 500
+    condition     = length(var.description) <= 500
     error_message = "The description must be 500 characters or less."
   }
 }

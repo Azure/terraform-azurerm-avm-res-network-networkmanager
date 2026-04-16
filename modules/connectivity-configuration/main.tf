@@ -9,7 +9,7 @@ resource "azapi_resource" "connectivity_configuration" {
           groupConnectivity = group.group_connectivity
           isGlobal          = group.is_global ? "True" : "False"
           networkGroupId    = group.network_group_id
-          useHubGateway     = var.connectivity_topology == "HubAndSpoke" ? (group.use_hub_gateway ? "True" : "False") : null
+          useHubGateway     = var.connectivity_topology == "HubAndSpoke" && group.use_hub_gateway ? "True" : "False"
         }
       ]
       connectivityCapabilities = var.connectivity_capabilities != null ? {
