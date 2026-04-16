@@ -10,8 +10,8 @@ variable "name" {
   nullable    = false
 
   validation {
-    condition     = length(var.name) <= 64 && length(var.name) >= 1
-    error_message = "The name must be between 1 and 64 characters."
+    condition     = length(var.name) > 0 && length(var.name) <= 64
+    error_message = "The name must be between 1 and 64 characters in length."
   }
 }
 
@@ -25,12 +25,22 @@ variable "network_manager_scope" {
   - `subscription_ids` - (Optional) A list of subscription IDs.
   DESCRIPTION
   nullable    = false
+
+  validation {
+    condition     = length(coalesce(var.network_manager_scope.management_group_ids, [])) > 0 || length(coalesce(var.network_manager_scope.subscription_ids, [])) > 0
+    error_message = "At least one management_group_id or subscription id must be provided."
+  }
 }
 
 variable "network_manager_scope_accesses" {
   type        = list(string)
   description = "(Required) Scope Access (Also known as features). A list of configuration deployment type. Possible values are `Connectivity`, `SecurityAdmin`, and `Routing`. The connectivity feature allows you to create network topologies at scale. The security admin feature lets you create high-priority security rules, which take precedence over NSGs. The routing feature allows you to describe your desired routing behavior and orchestrate user-defined routes (UDRs) to create and maintain the desired routing behavior. If none of the features are required, then this parameter does not need to be specified, which then only enables features like `IPAM` and `Virtual Network Verifier`."
   nullable    = false
+
+  validation {
+    condition     = alltrue([for scope_access in var.network_manager_scope_accesses : contains(["Connectivity", "SecurityAdmin", "Routing"], scope_access)])
+    error_message = "Each value in the list must be one of 'Connectivity', 'SecurityAdmin', or 'Routing'."
+  }
 }
 
 variable "resource_group_name" {
@@ -45,9 +55,9 @@ variable "connectivity_configurations" {
     description = optional(string, null)
     applies_to_groups = list(object({
       group_connectivity = string
-      is_global          = optional(bool, null)
+      is_global          = optional(bool, false)
       network_group_id   = string
-      use_hub_gateway    = optional(bool, null)
+      use_hub_gateway    = optional(bool, false)
     }))
     connectivity_topology = string
     connectivity_capabilities = optional(object({
@@ -58,11 +68,11 @@ variable "connectivity_configurations" {
     hubs = optional(list(object({
       resource_id   = string
       resource_type = string
-    })), null)
-    delete_existing_peering = optional(bool, null)
-    is_global               = optional(bool, null)
+    })), [])
+    delete_existing_peering = optional(bool, false)
+    is_global               = optional(bool, false)
   }))
-  default     = null
+  default     = {}
   description = <<DESCRIPTION
   A map of connectivity configurations to create on the Network Manager. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
   `name` - (Required) The name of the connectivity configuration.
@@ -83,6 +93,7 @@ variable "connectivity_configurations" {
   `delete_existing_peering` - (Optional) A boolean value indicating whether or not to delete existing peerings.
   `is_global` - (Optional) A boolean value indicating whether the configuration is global.
   DESCRIPTION
+  nullable    = false
 }
 
 variable "description" {
@@ -174,7 +185,7 @@ variable "network_groups" {
     static_members = optional(list(object({
       name               = string
       target_resource_id = string
-    })))
+    })), [])
   }))
   default     = {}
   description = <<DESCRIPTION
@@ -238,14 +249,14 @@ variable "routing_configurations" {
   type = map(object({
     name                   = string
     description            = optional(string, null)
-    route_table_usage_mode = optional(string, null)
+    route_table_usage_mode = optional(string, "ManagedOnly")
     rule_collections = optional(map(object({
       name        = string
       description = optional(string, null)
       applies_to = list(object({
         network_group_id = string
       }))
-      disable_bgp_route_propagation = optional(bool, null)
+      disable_bgp_route_propagation = optional(bool, true)
       rules = map(object({
         name        = string
         description = optional(string, null)
@@ -258,9 +269,9 @@ variable "routing_configurations" {
           next_hop_address = optional(string, null)
         })
       }))
-    })))
+    })), {})
   }))
-  default     = null
+  default     = {}
   description = <<DESCRIPTION
   A map of routing configurations to create on the Network Manager. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
   `name` - (Required) The name of the routing configuration.
@@ -271,7 +282,7 @@ variable "routing_configurations" {
     - `description` - (Optional) The description of the rule collection.
     - `applies_to` - (Required) A list of network groups that the rule collection applies to.
       - `network_group_id` - (Required) The ID of the network group that the rule collection applies to.
-    - `disable_bgp_route_propagation` - (Optional) A boolean value indicating whether or not to disable BGP route propagation for this rule collection. Defaults to false.
+    - `disable_bgp_route_propagation` - (Optional) A boolean value indicating whether or not to disable BGP route propagation for this rule collection. Defaults to true.
     - `rules` - (Required) A map of rules to create on the rule collection.
       - `name` - (Required) The name of the rule.
       - `description` - (Optional) The description of the rule.
@@ -282,6 +293,7 @@ variable "routing_configurations" {
         - `next_hop_type` - (Required) The type of next hop. Possible values are `VirtualAppliance`, `Internet`, `VirtualNetworkGateway`, `VnetLocal`, and `NoNextHop`.
         - `next_hop_address` - (Conditional) The next hop address. This is only applicable if the next hop type is VirtualAppliance, in which case this must be a valid IP address.
   DESCRIPTION
+  nullable    = false
 }
 
 variable "scope_connections" {
@@ -291,7 +303,7 @@ variable "scope_connections" {
     resource_id = string
     tenant_id   = string
   }))
-  default     = null
+  default     = {}
   description = <<DESCRIPTION
   (Optional) A map of scope connections to create on the Network Manager. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time. Scope Connections to create for the network manager. Allows network manager to manage resources from another tenant. Supports management groups or subscriptions from another tenant.
   `name` - (Required) The name of the scope connection.
@@ -299,6 +311,7 @@ variable "scope_connections" {
   `resource_id` - (Required) The resource ID of the scope to connect to. Can be a management group or subscription.
   `tenant_id` - (Required) The tenant ID of the scope to connect to.
   DESCRIPTION
+  nullable    = false
 }
 
 variable "security_admin_configurations" {
@@ -306,7 +319,7 @@ variable "security_admin_configurations" {
     name                                           = string
     description                                    = optional(string, null)
     apply_on_network_intent_policy_based_services  = list(string)
-    network_group_address_space_aggregation_option = optional(string, null)
+    network_group_address_space_aggregation_option = optional(string, "None")
     rule_collections = optional(map(object({
       name        = string
       description = optional(string, null)
@@ -331,9 +344,9 @@ variable "security_admin_configurations" {
           address_prefix      = string
         })), null)
       }))
-    })))
+    })), {})
   }))
-  default     = null
+  default     = {}
   description = <<DESCRIPTION
   A map of security admin configurations to create on the Network Manager. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
   `name` - (Required) The name of the security admin configuration.
@@ -361,6 +374,7 @@ variable "security_admin_configurations" {
         - `address_prefix_type` - (Required) The type of address prefix. Possible values are `IPPrefix`, `ServiceTag`.
         - `address_prefix` - (Required) The address prefix. If the address prefix type is IPPrefix, then this must be a valid CIDR notation. If the address prefix type is ServiceTag, then this must be a valid service tag.
   DESCRIPTION
+  nullable    = false
 }
 
 variable "tags" {

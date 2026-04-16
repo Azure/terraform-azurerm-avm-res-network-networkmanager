@@ -1,9 +1,9 @@
 variable "applies_to_groups" {
   type = list(object({
     group_connectivity = string
-    is_global          = optional(bool, null)
+    is_global          = optional(bool, false)
     network_group_id   = string
-    use_hub_gateway    = optional(bool, null)
+    use_hub_gateway    = optional(bool, false)
   }))
   description = <<DESCRIPTION
   (Required) A list of network groups that the connectivity configuration applies to.
@@ -13,6 +13,11 @@ variable "applies_to_groups" {
   - `use_hub_gateway` - (Optional) A boolean value indicating whether or not to use a hub gateway for this connectivity configuration. This is only applicable if the topology is set to `HubAndSpoke`. Defaults to false.
   DESCRIPTION
   nullable    = false
+
+  validation {
+    condition     = alltrue([for group in var.applies_to_groups : contains(["DirectlyConnected", "None"], group.group_connectivity)])
+    error_message = "Each group's connectivity must be either 'DirectlyConnected' or 'None'."
+  }
 }
 
 variable "connectivity_capabilities" {
@@ -21,6 +26,7 @@ variable "connectivity_capabilities" {
     connected_group_private_endpoints_scale = string
     peering_enforcement                     = string
   })
+  default     = null
   description = <<DESCRIPTION
   (Optional) A set of connectivity capabilities for the connectivity configuration.
   - `connected_group_address_overlap` - (Optional) The connectivity configuration's capability for connected group address overlap. Possible values are `Allowed` and `Disallowed`.
@@ -44,12 +50,13 @@ variable "connectivity_topology" {
 
 variable "description" {
   type        = string
+  default     = null
   description = <<DESCRIPTION
   (Optional) The description of the connectivity configuration.
   DESCRIPTION
 
   validation {
-    condition     = length(var.description) <= 500
+    condition     = var.description == null ? true : length(var.description) <= 500
     error_message = "The Description can be up to 500 characters in length."
   }
 }
@@ -59,11 +66,18 @@ variable "hubs" {
     resource_id   = string
     resource_type = string
   }))
+  default     = []
   description = <<DESCRIPTION
   (Optional) A list of hubs for the connectivity configuration. This is only applicable if the topology is set to `HubAndSpoke`.
   - `resource_id` - (Required) The resource ID of the hub.
   - `resource_type` - (Required) The resource type of the hub. Possible values are `Microsoft.Network/virtualNetworks`.
   DESCRIPTION
+  nullable    = false
+
+  validation {
+    condition     = var.connectivity_topology == "HubAndSpoke" || length(var.hubs) == 0
+    error_message = "'Hubs' are only applicable if topology is set to 'HubAndSpoke'."
+  }
 }
 
 variable "name" {
@@ -74,8 +88,8 @@ variable "name" {
   nullable    = false
 
   validation {
-    condition     = length(var.name) <= 64
-    error_message = "The Name can be up to 64 characters in length."
+    condition     = length(var.name) > 0 && length(var.name) <= 64
+    error_message = "The Name must be between 1 and 64 characters in length."
   }
 }
 
@@ -93,6 +107,7 @@ variable "delete_existing_peering" {
   description = <<DESCRIPTION
   (Optional) A boolean value indicating whether to delete existing peering connections. Defaults to false.
   DESCRIPTION
+  nullable    = false
 }
 
 variable "is_global" {
@@ -101,4 +116,5 @@ variable "is_global" {
   description = <<DESCRIPTION
   (Optional) A boolean value indicating whether the connectivity configuration applies to all network groups in the Network Manager. Defaults to false.
   DESCRIPTION
+  nullable    = false
 }

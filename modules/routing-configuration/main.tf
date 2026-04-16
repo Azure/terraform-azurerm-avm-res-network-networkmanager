@@ -4,14 +4,14 @@ resource "azapi_resource" "routing_configuration" {
   type      = "Microsoft.Network/networkManagers/routingConfigurations@2025-05-01"
   body = {
     properties = {
-      description         = var.description == null ? "" : var.description
-      routeTableUsageMode = coalesce(var.route_table_usage_mode, "ManagedOnly")
+      description         = var.description
+      routeTableUsageMode = var.route_table_usage_mode
     }
   }
 }
 
 resource "azapi_resource" "rule_collections" {
-  for_each = coalesce(var.rule_collections, {})
+  for_each = var.rule_collections
 
   name      = each.value.name
   parent_id = azapi_resource.routing_configuration.id
@@ -22,7 +22,7 @@ resource "azapi_resource" "rule_collections" {
       appliesTo = [for group in each.value.applies_to : {
         networkGroupId = group.network_group_id
       }]
-      disableBgpRoutePropagation = coalesce(each.value.disable_bgp_route_propagation, true) ? "True" : "False"
+      disableBgpRoutePropagation = each.value.disable_bgp_route_propagation ? "True" : "False"
     }
   }
 }

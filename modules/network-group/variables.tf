@@ -1,11 +1,12 @@
 variable "description" {
   type        = string
+  default     = null
   description = <<DESCRIPTION
   (Optional) The description of the network group.
   DESCRIPTION
 
   validation {
-    condition     = length(var.description) <= 500
+    condition     = var.description == null ? true : length(var.description) <= 500
     error_message = "The Description can be up to 500 characters in length."
   }
 }
@@ -15,9 +16,11 @@ variable "member_type" {
   description = <<DESCRIPTION
   (Optional) The type of members in the network group. Possible values are `VirtualNetwork` and `Subnet`.
   DESCRIPTION
+  default     = "VirtualNetwork"
+  nullable    = false
 
   validation {
-    condition     = var.member_type == null || contains(["VirtualNetwork", "Subnet"], var.member_type)
+    condition     = contains(["VirtualNetwork", "Subnet"], var.member_type)
     error_message = "The Member Type must be either 'VirtualNetwork' or 'Subnet'."
   }
 }
@@ -30,8 +33,8 @@ variable "name" {
   nullable    = false
 
   validation {
-    condition     = length(var.name) <= 64
-    error_message = "The Name can be up to 64 characters in length."
+    condition     = length(var.name) > 0 && length(var.name) <= 64
+    error_message = "The Name must be between 1 and 64 characters in length."
   }
 }
 
@@ -48,7 +51,9 @@ variable "static_members" {
     name               = string
     target_resource_id = string
   }))
+  default     = []
   description = <<DESCRIPTION
   (Optional) A list of static members to be included in the network group. Each static member requires a name and a target resource ID.
   DESCRIPTION
+  nullable    = false
 }

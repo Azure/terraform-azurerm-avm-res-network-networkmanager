@@ -7,9 +7,9 @@ resource "azapi_resource" "connectivity_configuration" {
       appliesToGroups = [
         for group in var.applies_to_groups : {
           groupConnectivity = group.group_connectivity
-          isGlobal          = group.is_global != null ? (group.is_global ? "True" : "False") : null
+          isGlobal          = group.is_global ? "True" : "False"
           networkGroupId    = group.network_group_id
-          useHubGateway     = group.use_hub_gateway != null ? (group.use_hub_gateway ? "True" : "False") : null
+          useHubGateway     = var.connectivity_topology == "HubAndSpoke" ? (group.use_hub_gateway ? "True" : "False") : null
         }
       ]
       connectivityCapabilities = var.connectivity_capabilities != null ? {
@@ -18,13 +18,13 @@ resource "azapi_resource" "connectivity_configuration" {
         peeringEnforcement                  = var.connectivity_capabilities.peering_enforcement
       } : null
       connectivityTopology  = var.connectivity_topology
-      deleteExistingPeering = coalesce(var.delete_existing_peering, false) ? "True" : "False"
-      description           = var.description == null ? "" : var.description
+      deleteExistingPeering = var.delete_existing_peering ? "True" : "False"
+      description           = var.description
       hubs = [for hub in(var.connectivity_topology == "HubAndSpoke" ? var.hubs : []) : {
         resourceId   = hub.resource_id
         resourceType = hub.resource_type
       }]
-      isGlobal = var.is_global != null ? (var.is_global ? "True" : "False") : null
+      isGlobal = var.is_global ? "True" : "False"
     }
   }
 }

@@ -1,8 +1,10 @@
 variable "description" {
   type        = string
+  default     = ""
   description = <<DESCRIPTION
   (Optional) The description of the Scope Connection.
   DESCRIPTION
+  nullable    = false
 
   validation {
     condition     = length(var.description) <= 500
@@ -13,13 +15,13 @@ variable "description" {
 variable "name" {
   type        = string
   description = <<DESCRIPTION
-  (Required) The name of the Scope Connection. The name must be between 1 and 80 characters, and can contain letters, numbers, underscores, periods, and hyphens. The name must start with a letter or a number, and end with a letter, a number, or an underscore.
+  (Required) The name of the Scope Connection. The name must be between 1 and 64 characters, and can contain letters, numbers, underscores, periods, and hyphens. The name must start with a letter or a number, and end with a letter, a number, or an underscore.
   DESCRIPTION
   nullable    = false
 
   validation {
-    condition     = length(var.name) <= 64
-    error_message = "The name must be 64 characters or less."
+    condition     = length(var.name) > 0 && length(var.name) <= 64
+    error_message = "The name must be between 1 and 64 characters in length."
   }
 }
 

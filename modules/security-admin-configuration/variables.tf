@@ -6,16 +6,18 @@ variable "apply_on_network_intent_policy_based_services" {
   nullable    = false
 
   validation {
-    condition     = contains(["All", "AllowRulesOnly", "None"], var.apply_on_network_intent_policy_based_services...)
+    condition     = alltrue([for v in var.apply_on_network_intent_policy_based_services : contains(["All", "AllowRulesOnly", "None"], v)])
     error_message = "Each value in the list must be one of 'All', 'AllowRulesOnly', or 'None'."
   }
 }
 
 variable "description" {
   type        = string
+  default     = ""
   description = <<DESCRIPTION
-  (Optional) The description of the Security Admin Configuration. The description must be between 0 and 255 characters, and can contain letters, numbers, underscores, periods, and hyphens. The description must start with a letter or a number, and end with a letter, a number, or an underscore.
+  (Optional) The description of the Security Admin Configuration. The description must be between 0 and 500 characters, and can contain letters, numbers, underscores, periods, and hyphens. The description must start with a letter or a number, and end with a letter, a number, or an underscore.
   DESCRIPTION
+  nullable    = false
 
   validation {
     condition     = length(var.description) <= 500
@@ -26,13 +28,13 @@ variable "description" {
 variable "name" {
   type        = string
   description = <<DESCRIPTION
-  (Required) The name of the Security Admin Configuration. The name must be between 1 and 80 characters, and can contain letters, numbers, underscores, periods, and hyphens. The name must start with a letter or a number, and end with a letter, a number, or an underscore.
+  (Required) The name of the Security Admin Configuration. The name must be between 1 and 64 characters, and can contain letters, numbers, underscores, periods, and hyphens. The name must start with a letter or a number, and end with a letter, a number, or an underscore.
   DESCRIPTION
   nullable    = false
 
   validation {
-    condition     = length(var.name) <= 64
-    error_message = "The name must be 64 characters or less."
+    condition     = length(var.name) > 0 && length(var.name) <= 64
+    error_message = "The name must be between 1 and 64 characters in length."
   }
 }
 
@@ -70,6 +72,7 @@ variable "rule_collections" {
       })), null)
     }))
   }))
+  default     = {}
   description = <<DESCRIPTION
   (Optional) A map of rule collections to create on the security admin configuration. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
     - `name` - (Required) The name of the rule collection.
@@ -92,6 +95,7 @@ variable "rule_collections" {
         - `address_prefix_type` - (Required) The type of address prefix. Possible values are `IPPrefix`, `ServiceTag`.
         - `address_prefix` - (Required) The address prefix. If the address prefix type is IPPrefix, then this must be a valid CIDR notation. If the address prefix type is ServiceTag, then this must be a valid service tag.
   DESCRIPTION
+  nullable    = false
 }
 
 variable "network_group_address_space_aggregation_option" {
@@ -100,9 +104,10 @@ variable "network_group_address_space_aggregation_option" {
   description = <<DESCRIPTION
   (Optional) The network group address space aggregation option for the security admin configuration. Possible values are `None`, and `Manual`.
   DESCRIPTION
+  nullable    = false
 
   validation {
-    condition     = contains(["None", "Manual"], coalesce(var.network_group_address_space_aggregation_option, "None"))
+    condition     = contains(["None", "Manual"], var.network_group_address_space_aggregation_option)
     error_message = "The value must be either 'None' or 'Manual'."
   }
 }

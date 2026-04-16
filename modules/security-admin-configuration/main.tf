@@ -6,13 +6,13 @@ resource "azapi_resource" "security_admin_configuration" {
     properties = {
       description                               = var.description
       applyOnNetworkIntentPolicyBasedServices   = var.apply_on_network_intent_policy_based_services
-      networkGroupAddressSpaceAggregationOption = coalesce(var.network_group_address_space_aggregation_option, "None")
+      networkGroupAddressSpaceAggregationOption = var.network_group_address_space_aggregation_option
     }
   }
 }
 
 resource "azapi_resource" "rule_collections" {
-  for_each = coalesce(var.rule_collections, {})
+  for_each = var.rule_collections
 
   name      = each.value.name
   parent_id = azapi_resource.security_admin_configuration.id

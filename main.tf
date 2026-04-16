@@ -28,7 +28,7 @@ resource "azurerm_network_manager" "this" {
 
 module "network_groups" {
   source   = "./modules/network-group"
-  for_each = coalesce(var.network_groups, {})
+  for_each = var.network_groups
 
   description        = each.value.description
   member_type        = each.value.member_type
@@ -39,7 +39,7 @@ module "network_groups" {
 
 module "connectivity_configuration" {
   source   = "./modules/connectivity-configuration"
-  for_each = coalesce(var.connectivity_configurations, {})
+  for_each = var.connectivity_configurations
 
   applies_to_groups         = each.value.applies_to_groups
   connectivity_capabilities = each.value.connectivity_capabilities
@@ -56,7 +56,7 @@ module "connectivity_configuration" {
 
 module "scope_connection" {
   source   = "./modules/scope-connection"
-  for_each = coalesce(var.scope_connections, {})
+  for_each = var.scope_connections
 
   description        = each.value.description
   name               = each.value.name
@@ -67,7 +67,7 @@ module "scope_connection" {
 
 module "security_admin_configuration" {
   source   = "./modules/security-admin-configuration"
-  for_each = coalesce(var.security_admin_configurations, {})
+  for_each = var.security_admin_configurations
 
   apply_on_network_intent_policy_based_services  = each.value.apply_on_network_intent_policy_based_services
   description                                    = each.value.description
@@ -81,7 +81,7 @@ module "security_admin_configuration" {
 
 module "routing_configuration" {
   source   = "./modules/routing-configuration"
-  for_each = coalesce(var.routing_configurations, {})
+  for_each = var.routing_configurations
 
   description            = each.value.description
   name                   = each.value.name
