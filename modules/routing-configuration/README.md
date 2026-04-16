@@ -48,7 +48,7 @@ Description:   (Optional) The description of the Routing Configuration. The desc
 
 Type: `string`
 
-Default: `null`
+Default: `""`
 
 ### <a name="input_route_table_usage_mode"></a> [route\_table\_usage\_mode](#input\_route\_table\_usage\_mode)
 

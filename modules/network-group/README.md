@@ -47,7 +47,7 @@ Description:   (Optional) The description of the network group.
 
 Type: `string`
 
-Default: `null`
+Default: `""`
 
 ### <a name="input_member_type"></a> [member\_type](#input\_member\_type)
 
