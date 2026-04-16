@@ -4,8 +4,8 @@ resource "azapi_resource" "routing_configuration" {
   type      = "Microsoft.Network/networkManagers/routingConfigurations@2025-05-01"
   body = {
     properties = {
-      description         = var.description
-      routeTableUsageMode = var.route_table_usage_mode
+      description         = var.description == null ? "" : var.description
+      routeTableUsageMode = coalesce(var.route_table_usage_mode, "ManagedOnly")
     }
   }
 }
@@ -18,11 +18,11 @@ resource "azapi_resource" "rule_collections" {
   type      = "Microsoft.Network/networkManagers/routingConfigurations/ruleCollections@2025-05-01"
   body = {
     properties = {
-      description = each.value.description
+      description = each.value.description == null ? "" : each.value.description
       appliesTo = [for group in each.value.applies_to : {
         networkGroupId = group.network_group_id
       }]
-      disableBgpRoutePropagation = each.value.disable_bgp_route_propagation != null ? (each.value.disable_bgp_route_propagation ? "True" : "False") : null
+      disableBgpRoutePropagation = coalesce(each.value.disable_bgp_route_propagation, true) ? "True" : "False"
     }
   }
 }
@@ -35,13 +35,13 @@ resource "azapi_resource" "rules" {
   type      = "Microsoft.Network/networkManagers/routingConfigurations/ruleCollections/rules@2025-05-01"
   body = {
     properties = {
-      description = each.value.rule.description
+      description = each.value.rule.description == null ? "" : each.value.rule.description
       destination = {
         destinationAddress = each.value.rule.destination.destination_address
         type               = each.value.rule.destination.type
       }
       nextHop = {
-        nextHopAddress = each.value.rule.next_hop.next_hop_address
+        nextHopAddress = each.value.rule.next_hop.next_hop_type == "VirtualAppliance" ? each.value.rule.next_hop.next_hop_address : ""
         nextHopType    = each.value.rule.next_hop.next_hop_type
       }
     }

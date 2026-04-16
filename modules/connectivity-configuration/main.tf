@@ -18,8 +18,8 @@ resource "azapi_resource" "connectivity_configuration" {
         peeringEnforcement                  = var.connectivity_capabilities.peering_enforcement
       } : null
       connectivityTopology  = var.connectivity_topology
-      deleteExistingPeering = var.delete_existing_peering != null ? (var.delete_existing_peering ? "True" : "False") : null
-      description           = var.description
+      deleteExistingPeering = coalesce(var.delete_existing_peering, false) ? "True" : "False"
+      description           = var.description == null ? "" : var.description
       hubs = [for hub in(var.connectivity_topology == "HubAndSpoke" ? var.hubs : []) : {
         resourceId   = hub.resource_id
         resourceType = hub.resource_type

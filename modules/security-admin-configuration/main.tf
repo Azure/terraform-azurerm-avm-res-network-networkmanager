@@ -6,7 +6,7 @@ resource "azapi_resource" "security_admin_configuration" {
     properties = {
       description                               = var.description
       applyOnNetworkIntentPolicyBasedServices   = var.apply_on_network_intent_policy_based_services
-      networkGroupAddressSpaceAggregationOption = var.network_group_address_space_aggregation_option
+      networkGroupAddressSpaceAggregationOption = coalesce(var.network_group_address_space_aggregation_option, "None")
     }
   }
 }
@@ -19,7 +19,7 @@ resource "azapi_resource" "rule_collections" {
   type      = "Microsoft.Network/networkManagers/securityAdminConfigurations/ruleCollections@2025-05-01"
   body = {
     properties = {
-      description = each.value.description
+      description = each.value.description == null ? "" : each.value.description
       appliesToGroups = [for group in each.value.applies_to_groups : {
         networkGroupId = group.network_group_id
       }]
@@ -36,9 +36,9 @@ resource "azapi_resource" "rules" {
   body = {
     kind = "Custom"
     properties = {
-      description           = each.value.rule.description
+      description           = each.value.rule.description == null ? "" : each.value.rule.description
       access                = each.value.rule.access
-      destinationPortRanges = each.value.rule.destination_port_ranges
+      destinationPortRanges = coalesce(each.value.rule.destination_port_ranges, [])
       destinations = [for destination in coalesce(each.value.rule.destinations, []) : {
         addressPrefix     = destination.address_prefix
         addressPrefixType = destination.address_prefix_type
@@ -46,7 +46,7 @@ resource "azapi_resource" "rules" {
       direction        = each.value.rule.direction
       priority         = each.value.rule.priority
       protocol         = each.value.rule.protocol
-      sourcePortRanges = each.value.rule.source_port_ranges
+      sourcePortRanges = coalesce(each.value.rule.source_port_ranges, [])
       sources = [for source in coalesce(each.value.rule.sources, []) : {
         addressPrefix     = source.address_prefix
         addressPrefixType = source.address_prefix_type

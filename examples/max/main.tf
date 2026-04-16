@@ -243,7 +243,7 @@ module "network_manager" {
           name = "test-routing-rule-collection-1-subnet"
           applies_to = [
             {
-              network_group_id = "${local.network_manager_expected_resource_id}/networkGroups/network-groups-subnets-1"
+              network_group_id = "${local.network_manager_expected_resource_id}/networkGroups/network-group-subnets-1"
             }
           ]
           disable_bgp_route_propagation = false
@@ -303,7 +303,7 @@ module "network_manager" {
     scope_connection_test = {
       name        = "scope-connection-test"
       description = "This is the first scope connection."
-      resource_id = data.azurerm_subscription.current.subscription_id
+      resource_id = "/subscriptions/${data.azurerm_subscription.current.subscription_id}"
       tenant_id   = data.azurerm_subscription.current.tenant_id
     }
   }
@@ -359,7 +359,7 @@ module "network_manager" {
               network_group_id = "${local.network_manager_expected_resource_id}/networkGroups/network-group-spokes-2"
             },
             {
-              network_group_id = "${local.network_manager_expected_resource_id}/networkGroups/network-group-spokes-3"
+              network_group_id = "${local.network_manager_expected_resource_id}/networkGroups/network-group-spokes-1"
             }
           ]
           rules = {
