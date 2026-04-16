@@ -26,15 +26,9 @@ The following resources are used by this module:
 
 The following input variables are required:
 
-### <a name="input_description"></a> [description](#input\_description)
-
-Description:   (Optional) The description of the Routing Configuration. The description must be between 0 and 255 characters, and can contain letters, numbers, underscores, periods, and hyphens. The description must start with a letter or a number, and end with a letter, a number, or an underscore.
-
-Type: `string`
-
 ### <a name="input_name"></a> [name](#input\_name)
 
-Description:   (Required) The name of the Routing Configuration. The name must be between 1 and 80 characters, and can contain letters, numbers, underscores, periods, and hyphens. The name must start with a letter or a number, and end with a letter, a number, or an underscore.
+Description:   (Required) The name of the Routing Configuration. The name must be between 1 and 64 characters, and can contain letters, numbers, underscores, periods, and hyphens. The name must start with a letter or a number, and end with a letter, a number, or an underscore.
 
 Type: `string`
 
@@ -44,6 +38,26 @@ Description:   (Required) The ID of the Network Manager to which this Routing Co
 
 Type: `string`
 
+## Optional Inputs
+
+The following input variables are optional (have default values):
+
+### <a name="input_description"></a> [description](#input\_description)
+
+Description:   (Optional) The description of the Routing Configuration. The description must be between 0 and 500 characters, and can contain letters, numbers, underscores, periods, and hyphens. The description must start with a letter or a number, and end with a letter, a number, or an underscore.
+
+Type: `string`
+
+Default: `null`
+
+### <a name="input_route_table_usage_mode"></a> [route\_table\_usage\_mode](#input\_route\_table\_usage\_mode)
+
+Description:   (Optional) The route table usage mode for the Routing Configuration. Possible values are `ManagedOnly` and `UseExisting`. If not specified, the default value is `ManagedOnly`.
+
+Type: `string`
+
+Default: `"ManagedOnly"`
+
 ### <a name="input_rule_collections"></a> [rule\_collections](#input\_rule\_collections)
 
 Description:   (Optional) A map of rule collections to create on the routing configuration.
@@ -51,7 +65,7 @@ Description:   (Optional) A map of rule collections to create on the routing con
   - `description` - (Optional) The description of the rule collection.
   - `applies_to` - (Required) A list of network groups that the rule collection applies to.
     - `network_group_id` - (Required) The ID of the network group that the rule collection applies to.
-  - `disable_bgp_route_propagation` - (Optional) A boolean value indicating whether or not to disable BGP route propagation for this rule collection. Defaults to false.
+  - `disable_bgp_route_propagation` - (Optional) A boolean value indicating whether or not to disable BGP route propagation for this rule collection. Defaults to true.
   - `rules` - (Required) A map of rules to create on the rule collection.
     - `name` - (Required) The name of the rule.
     - `description` - (Optional) The description of the rule.
@@ -71,7 +85,7 @@ map(object({
     applies_to = list(object({
       network_group_id = string
     }))
-    disable_bgp_route_propagation = optional(bool, null)
+    disable_bgp_route_propagation = optional(bool, true)
     rules = map(object({
       name        = string
       description = optional(string, null)
@@ -87,17 +101,7 @@ map(object({
   }))
 ```
 
-## Optional Inputs
-
-The following input variables are optional (have default values):
-
-### <a name="input_route_table_usage_mode"></a> [route\_table\_usage\_mode](#input\_route\_table\_usage\_mode)
-
-Description:   (Optional) The route table usage mode for the Routing Configuration. Possible values are `ManagedOnly` and `UseExisting`. If not specified, the default value is `ManagedOnly`.
-
-Type: `string`
-
-Default: `"ManagedOnly"`
+Default: `{}`
 
 ## Outputs
 

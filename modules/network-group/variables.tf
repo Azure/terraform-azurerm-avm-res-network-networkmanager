@@ -1,30 +1,3 @@
-variable "description" {
-  type        = string
-  default     = null
-  description = <<DESCRIPTION
-  (Optional) The description of the network group.
-  DESCRIPTION
-
-  validation {
-    condition     = var.description == null ? true : length(var.description) <= 500
-    error_message = "The Description can be up to 500 characters in length."
-  }
-}
-
-variable "member_type" {
-  type        = string
-  description = <<DESCRIPTION
-  (Optional) The type of members in the network group. Possible values are `VirtualNetwork` and `Subnet`.
-  DESCRIPTION
-  default     = "VirtualNetwork"
-  nullable    = false
-
-  validation {
-    condition     = contains(["VirtualNetwork", "Subnet"], var.member_type)
-    error_message = "The Member Type must be either 'VirtualNetwork' or 'Subnet'."
-  }
-}
-
 variable "name" {
   type        = string
   description = <<DESCRIPTION
@@ -44,6 +17,33 @@ variable "network_manager_id" {
   (Required) The ID of the Network Manager.
   DESCRIPTION
   nullable    = false
+}
+
+variable "description" {
+  type        = string
+  default     = null
+  description = <<DESCRIPTION
+  (Optional) The description of the network group.
+  DESCRIPTION
+
+  validation {
+    condition     = var.description == null ? true : length(var.description) <= 500
+    error_message = "The Description can be up to 500 characters in length."
+  }
+}
+
+variable "member_type" {
+  type        = string
+  default     = "VirtualNetwork"
+  description = <<DESCRIPTION
+  (Optional) The type of members in the network group. Possible values are `VirtualNetwork` and `Subnet`.
+  DESCRIPTION
+  nullable    = false
+
+  validation {
+    condition     = contains(["VirtualNetwork", "Subnet"], var.member_type)
+    error_message = "The Member Type must be either 'VirtualNetwork' or 'Subnet'."
+  }
 }
 
 variable "static_members" {

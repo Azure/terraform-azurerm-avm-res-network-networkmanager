@@ -20,6 +20,40 @@ variable "applies_to_groups" {
   }
 }
 
+variable "connectivity_topology" {
+  type        = string
+  description = <<DESCRIPTION
+  (Required) The connectivity topology of the connectivity configuration. Possible values are `HubAndSpoke` and `Mesh`.
+  DESCRIPTION
+  nullable    = false
+
+  validation {
+    condition     = contains(["HubAndSpoke", "Mesh"], var.connectivity_topology)
+    error_message = "The Connectivity Topology must be either 'HubAndSpoke' or 'Mesh'."
+  }
+}
+
+variable "name" {
+  type        = string
+  description = <<DESCRIPTION
+  (Required) The name of the connectivity configuration.
+  DESCRIPTION
+  nullable    = false
+
+  validation {
+    condition     = length(var.name) > 0 && length(var.name) <= 64
+    error_message = "The Name must be between 1 and 64 characters in length."
+  }
+}
+
+variable "network_manager_id" {
+  type        = string
+  description = <<DESCRIPTION
+  (Required) The ID of the Network Manager.
+  DESCRIPTION
+  nullable    = false
+}
+
 variable "connectivity_capabilities" {
   type = object({
     connected_group_address_overlap         = string
@@ -35,17 +69,13 @@ variable "connectivity_capabilities" {
   DESCRIPTION
 }
 
-variable "connectivity_topology" {
-  type        = string
+variable "delete_existing_peering" {
+  type        = bool
+  default     = false
   description = <<DESCRIPTION
-  (Required) The connectivity topology of the connectivity configuration. Possible values are `HubAndSpoke` and `Mesh`.
+  (Optional) A boolean value indicating whether to delete existing peering connections. Defaults to false.
   DESCRIPTION
   nullable    = false
-
-  validation {
-    condition     = contains(["HubAndSpoke", "Mesh"], var.connectivity_topology)
-    error_message = "The Connectivity Topology must be either 'HubAndSpoke' or 'Mesh'."
-  }
 }
 
 variable "description" {
@@ -78,36 +108,6 @@ variable "hubs" {
     condition     = var.connectivity_topology == "HubAndSpoke" || length(var.hubs) == 0
     error_message = "'Hubs' are only applicable if topology is set to 'HubAndSpoke'."
   }
-}
-
-variable "name" {
-  type        = string
-  description = <<DESCRIPTION
-  (Required) The name of the connectivity configuration.
-  DESCRIPTION
-  nullable    = false
-
-  validation {
-    condition     = length(var.name) > 0 && length(var.name) <= 64
-    error_message = "The Name must be between 1 and 64 characters in length."
-  }
-}
-
-variable "network_manager_id" {
-  type        = string
-  description = <<DESCRIPTION
-  (Required) The ID of the Network Manager.
-  DESCRIPTION
-  nullable    = false
-}
-
-variable "delete_existing_peering" {
-  type        = bool
-  default     = false
-  description = <<DESCRIPTION
-  (Optional) A boolean value indicating whether to delete existing peering connections. Defaults to false.
-  DESCRIPTION
-  nullable    = false
 }
 
 variable "is_global" {

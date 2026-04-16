@@ -25,18 +25,6 @@ The following resources are used by this module:
 
 The following input variables are required:
 
-### <a name="input_description"></a> [description](#input\_description)
-
-Description:   (Optional) The description of the network group.
-
-Type: `string`
-
-### <a name="input_member_type"></a> [member\_type](#input\_member\_type)
-
-Description:   (Optional) The type of members in the network group. Possible values are `VirtualNetwork` and `Subnet`.
-
-Type: `string`
-
 ### <a name="input_name"></a> [name](#input\_name)
 
 Description:   (Required) The name of the network group.
@@ -48,6 +36,26 @@ Type: `string`
 Description:   (Required) The ID of the Network Manager.
 
 Type: `string`
+
+## Optional Inputs
+
+The following input variables are optional (have default values):
+
+### <a name="input_description"></a> [description](#input\_description)
+
+Description:   (Optional) The description of the network group.
+
+Type: `string`
+
+Default: `null`
+
+### <a name="input_member_type"></a> [member\_type](#input\_member\_type)
+
+Description:   (Optional) The type of members in the network group. Possible values are `VirtualNetwork` and `Subnet`.
+
+Type: `string`
+
+Default: `"VirtualNetwork"`
 
 ### <a name="input_static_members"></a> [static\_members](#input\_static\_members)
 
@@ -62,9 +70,7 @@ list(object({
   }))
 ```
 
-## Optional Inputs
-
-No optional inputs.
+Default: `[]`
 
 ## Outputs
 

@@ -1,17 +1,3 @@
-variable "description" {
-  type        = string
-  default     = ""
-  description = <<DESCRIPTION
-  (Optional) The description of the Scope Connection.
-  DESCRIPTION
-  nullable    = false
-
-  validation {
-    condition     = length(var.description) <= 500
-    error_message = "The description must be 500 characters or less."
-  }
-}
-
 variable "name" {
   type        = string
   description = <<DESCRIPTION
@@ -47,4 +33,18 @@ variable "tenant_id" {
   (Required) The tenant ID of the Subscription or Management Group to which the Network Manager will connect.
   DESCRIPTION
   nullable    = false
+}
+
+variable "description" {
+  type        = string
+  default     = ""
+  description = <<DESCRIPTION
+  (Optional) The description of the Scope Connection.
+  DESCRIPTION
+  nullable    = false
+
+  validation {
+    condition     = length(var.description) <= 500
+    error_message = "The description must be 500 characters or less."
+  }
 }

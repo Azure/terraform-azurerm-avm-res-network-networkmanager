@@ -108,9 +108,9 @@ map(object({
     description = optional(string, null)
     applies_to_groups = list(object({
       group_connectivity = string
-      is_global          = optional(bool, null)
+      is_global          = optional(bool, false)
       network_group_id   = string
-      use_hub_gateway    = optional(bool, null)
+      use_hub_gateway    = optional(bool, false)
     }))
     connectivity_topology = string
     connectivity_capabilities = optional(object({
@@ -121,13 +121,13 @@ map(object({
     hubs = optional(list(object({
       resource_id   = string
       resource_type = string
-    })), null)
-    delete_existing_peering = optional(bool, null)
-    is_global               = optional(bool, null)
+    })), [])
+    delete_existing_peering = optional(bool, false)
+    is_global               = optional(bool, false)
   }))
 ```
 
-Default: `null`
+Default: `{}`
 
 ### <a name="input_description"></a> [description](#input\_description)
 
@@ -219,7 +219,7 @@ map(object({
     static_members = optional(list(object({
       name               = string
       target_resource_id = string
-    })))
+    })), [])
   }))
 ```
 
@@ -288,7 +288,7 @@ Description:   A map of routing configurations to create on the Network Manager.
     - `description` - (Optional) The description of the rule collection.
     - `applies_to` - (Required) A list of network groups that the rule collection applies to.
       - `network_group_id` - (Required) The ID of the network group that the rule collection applies to.
-    - `disable_bgp_route_propagation` - (Optional) A boolean value indicating whether or not to disable BGP route propagation for this rule collection. Defaults to false.
+    - `disable_bgp_route_propagation` - (Optional) A boolean value indicating whether or not to disable BGP route propagation for this rule collection. Defaults to true.
     - `rules` - (Required) A map of rules to create on the rule collection.
       - `name` - (Required) The name of the rule.
       - `description` - (Optional) The description of the rule.
@@ -305,14 +305,14 @@ Type:
 map(object({
     name                   = string
     description            = optional(string, null)
-    route_table_usage_mode = optional(string, null)
+    route_table_usage_mode = optional(string, "ManagedOnly")
     rule_collections = optional(map(object({
       name        = string
       description = optional(string, null)
       applies_to = list(object({
         network_group_id = string
       }))
-      disable_bgp_route_propagation = optional(bool, null)
+      disable_bgp_route_propagation = optional(bool, true)
       rules = map(object({
         name        = string
         description = optional(string, null)
@@ -325,11 +325,11 @@ map(object({
           next_hop_address = optional(string, null)
         })
       }))
-    })))
+    })), {})
   }))
 ```
 
-Default: `null`
+Default: `{}`
 
 ### <a name="input_scope_connections"></a> [scope\_connections](#input\_scope\_connections)
 
@@ -350,7 +350,7 @@ map(object({
   }))
 ```
 
-Default: `null`
+Default: `{}`
 
 ### <a name="input_security_admin_configurations"></a> [security\_admin\_configurations](#input\_security\_admin\_configurations)
 
@@ -387,7 +387,7 @@ map(object({
     name                                           = string
     description                                    = optional(string, null)
     apply_on_network_intent_policy_based_services  = list(string)
-    network_group_address_space_aggregation_option = optional(string, null)
+    network_group_address_space_aggregation_option = optional(string, "None")
     rule_collections = optional(map(object({
       name        = string
       description = optional(string, null)
@@ -412,11 +412,11 @@ map(object({
           address_prefix      = string
         })), null)
       }))
-    })))
+    })), {})
   }))
 ```
 
-Default: `null`
+Default: `{}`
 
 ### <a name="input_tags"></a> [tags](#input\_tags)
 

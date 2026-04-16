@@ -24,15 +24,9 @@ The following resources are used by this module:
 
 The following input variables are required:
 
-### <a name="input_description"></a> [description](#input\_description)
-
-Description:   (Optional) The description of the Scope Connection.
-
-Type: `string`
-
 ### <a name="input_name"></a> [name](#input\_name)
 
-Description:   (Required) The name of the Scope Connection. The name must be between 1 and 80 characters, and can contain letters, numbers, underscores, periods, and hyphens. The name must start with a letter or a number, and end with a letter, a number, or an underscore.
+Description:   (Required) The name of the Scope Connection. The name must be between 1 and 64 characters, and can contain letters, numbers, underscores, periods, and hyphens. The name must start with a letter or a number, and end with a letter, a number, or an underscore.
 
 Type: `string`
 
@@ -56,7 +50,15 @@ Type: `string`
 
 ## Optional Inputs
 
-No optional inputs.
+The following input variables are optional (have default values):
+
+### <a name="input_description"></a> [description](#input\_description)
+
+Description:   (Optional) The description of the Scope Connection.
+
+Type: `string`
+
+Default: `""`
 
 ## Outputs
 

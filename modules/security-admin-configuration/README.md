@@ -32,15 +32,9 @@ Description:   (Required) A list of network intent policy-based services that th
 
 Type: `list(string)`
 
-### <a name="input_description"></a> [description](#input\_description)
-
-Description:   (Optional) The description of the Security Admin Configuration. The description must be between 0 and 255 characters, and can contain letters, numbers, underscores, periods, and hyphens. The description must start with a letter or a number, and end with a letter, a number, or an underscore.
-
-Type: `string`
-
 ### <a name="input_name"></a> [name](#input\_name)
 
-Description:   (Required) The name of the Security Admin Configuration. The name must be between 1 and 80 characters, and can contain letters, numbers, underscores, periods, and hyphens. The name must start with a letter or a number, and end with a letter, a number, or an underscore.
+Description:   (Required) The name of the Security Admin Configuration. The name must be between 1 and 64 characters, and can contain letters, numbers, underscores, periods, and hyphens. The name must start with a letter or a number, and end with a letter, a number, or an underscore.
 
 Type: `string`
 
@@ -49,6 +43,26 @@ Type: `string`
 Description:   (Required) The ID of the Network Manager to which this Security Admin Configuration belongs.
 
 Type: `string`
+
+## Optional Inputs
+
+The following input variables are optional (have default values):
+
+### <a name="input_description"></a> [description](#input\_description)
+
+Description:   (Optional) The description of the Security Admin Configuration. The description must be between 0 and 500 characters, and can contain letters, numbers, underscores, periods, and hyphens. The description must start with a letter or a number, and end with a letter, a number, or an underscore.
+
+Type: `string`
+
+Default: `""`
+
+### <a name="input_network_group_address_space_aggregation_option"></a> [network\_group\_address\_space\_aggregation\_option](#input\_network\_group\_address\_space\_aggregation\_option)
+
+Description:   (Optional) The network group address space aggregation option for the security admin configuration. Possible values are `None`, and `Manual`.
+
+Type: `string`
+
+Default: `"None"`
 
 ### <a name="input_rule_collections"></a> [rule\_collections](#input\_rule\_collections)
 
@@ -103,17 +117,7 @@ map(object({
   }))
 ```
 
-## Optional Inputs
-
-The following input variables are optional (have default values):
-
-### <a name="input_network_group_address_space_aggregation_option"></a> [network\_group\_address\_space\_aggregation\_option](#input\_network\_group\_address\_space\_aggregation\_option)
-
-Description:   (Optional) The network group address space aggregation option for the security admin configuration. Possible values are `None`, and `Manual`.
-
-Type: `string`
-
-Default: `"None"`
+Default: `{}`
 
 ## Outputs
 

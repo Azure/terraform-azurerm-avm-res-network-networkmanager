@@ -37,11 +37,33 @@ Type:
 ```hcl
 list(object({
     group_connectivity = string
-    is_global          = optional(bool, null)
+    is_global          = optional(bool, false)
     network_group_id   = string
-    use_hub_gateway    = optional(bool, null)
+    use_hub_gateway    = optional(bool, false)
   }))
 ```
+
+### <a name="input_connectivity_topology"></a> [connectivity\_topology](#input\_connectivity\_topology)
+
+Description:   (Required) The connectivity topology of the connectivity configuration. Possible values are `HubAndSpoke` and `Mesh`.
+
+Type: `string`
+
+### <a name="input_name"></a> [name](#input\_name)
+
+Description:   (Required) The name of the connectivity configuration.
+
+Type: `string`
+
+### <a name="input_network_manager_id"></a> [network\_manager\_id](#input\_network\_manager\_id)
+
+Description:   (Required) The ID of the Network Manager.
+
+Type: `string`
+
+## Optional Inputs
+
+The following input variables are optional (have default values):
 
 ### <a name="input_connectivity_capabilities"></a> [connectivity\_capabilities](#input\_connectivity\_capabilities)
 
@@ -60,17 +82,23 @@ object({
   })
 ```
 
-### <a name="input_connectivity_topology"></a> [connectivity\_topology](#input\_connectivity\_topology)
+Default: `null`
 
-Description:   (Required) The connectivity topology of the connectivity configuration. Possible values are `HubAndSpoke` and `Mesh`.
+### <a name="input_delete_existing_peering"></a> [delete\_existing\_peering](#input\_delete\_existing\_peering)
 
-Type: `string`
+Description:   (Optional) A boolean value indicating whether to delete existing peering connections. Defaults to false.
+
+Type: `bool`
+
+Default: `false`
 
 ### <a name="input_description"></a> [description](#input\_description)
 
 Description:   (Optional) The description of the connectivity configuration.
 
 Type: `string`
+
+Default: `null`
 
 ### <a name="input_hubs"></a> [hubs](#input\_hubs)
 
@@ -87,29 +115,7 @@ list(object({
   }))
 ```
 
-### <a name="input_name"></a> [name](#input\_name)
-
-Description:   (Required) The name of the connectivity configuration.
-
-Type: `string`
-
-### <a name="input_network_manager_id"></a> [network\_manager\_id](#input\_network\_manager\_id)
-
-Description:   (Required) The ID of the Network Manager.
-
-Type: `string`
-
-## Optional Inputs
-
-The following input variables are optional (have default values):
-
-### <a name="input_delete_existing_peering"></a> [delete\_existing\_peering](#input\_delete\_existing\_peering)
-
-Description:   (Optional) A boolean value indicating whether to delete existing peering connections. Defaults to false.
-
-Type: `bool`
-
-Default: `false`
+Default: `[]`
 
 ### <a name="input_is_global"></a> [is\_global](#input\_is\_global)
 

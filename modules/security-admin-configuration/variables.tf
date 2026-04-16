@@ -11,20 +11,6 @@ variable "apply_on_network_intent_policy_based_services" {
   }
 }
 
-variable "description" {
-  type        = string
-  default     = ""
-  description = <<DESCRIPTION
-  (Optional) The description of the Security Admin Configuration. The description must be between 0 and 500 characters, and can contain letters, numbers, underscores, periods, and hyphens. The description must start with a letter or a number, and end with a letter, a number, or an underscore.
-  DESCRIPTION
-  nullable    = false
-
-  validation {
-    condition     = length(var.description) <= 500
-    error_message = "The description must be 500 characters or less."
-  }
-}
-
 variable "name" {
   type        = string
   description = <<DESCRIPTION
@@ -44,6 +30,34 @@ variable "network_manager_id" {
   (Required) The ID of the Network Manager to which this Security Admin Configuration belongs.
   DESCRIPTION
   nullable    = false
+}
+
+variable "description" {
+  type        = string
+  default     = ""
+  description = <<DESCRIPTION
+  (Optional) The description of the Security Admin Configuration. The description must be between 0 and 500 characters, and can contain letters, numbers, underscores, periods, and hyphens. The description must start with a letter or a number, and end with a letter, a number, or an underscore.
+  DESCRIPTION
+  nullable    = false
+
+  validation {
+    condition     = length(var.description) <= 500
+    error_message = "The description must be 500 characters or less."
+  }
+}
+
+variable "network_group_address_space_aggregation_option" {
+  type        = string
+  default     = "None"
+  description = <<DESCRIPTION
+  (Optional) The network group address space aggregation option for the security admin configuration. Possible values are `None`, and `Manual`.
+  DESCRIPTION
+  nullable    = false
+
+  validation {
+    condition     = contains(["None", "Manual"], var.network_group_address_space_aggregation_option)
+    error_message = "The value must be either 'None' or 'Manual'."
+  }
 }
 
 variable "rule_collections" {
@@ -96,18 +110,4 @@ variable "rule_collections" {
         - `address_prefix` - (Required) The address prefix. If the address prefix type is IPPrefix, then this must be a valid CIDR notation. If the address prefix type is ServiceTag, then this must be a valid service tag.
   DESCRIPTION
   nullable    = false
-}
-
-variable "network_group_address_space_aggregation_option" {
-  type        = string
-  default     = "None"
-  description = <<DESCRIPTION
-  (Optional) The network group address space aggregation option for the security admin configuration. Possible values are `None`, and `Manual`.
-  DESCRIPTION
-  nullable    = false
-
-  validation {
-    condition     = contains(["None", "Manual"], var.network_group_address_space_aggregation_option)
-    error_message = "The value must be either 'None' or 'Manual'."
-  }
 }
