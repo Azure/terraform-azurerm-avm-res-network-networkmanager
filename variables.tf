@@ -56,7 +56,7 @@ variable "connectivity_configurations" {
     applies_to_groups = list(object({
       group_connectivity = string
       is_global          = optional(bool, false)
-      network_group_id   = string
+      network_group_key  = string
       use_hub_gateway    = optional(bool, false)
     }))
     connectivity_topology = string
@@ -79,8 +79,8 @@ variable "connectivity_configurations" {
   `description` - (Optional) The description of the connectivity configuration.
   `applies_to_groups` - (Required) A list of network groups that the connectivity configuration applies to.
     - `group_connectivity` - (Required) The type of connectivity for the group. `DirectlyConnected` and `None`.
-    - `is_global` - (Optional) A boolean value indicating whether the connectivity configuration applies to all network groups in the Network Manager. If set to true, then the connectivity configuration applies to all network groups and the `network_group_id` property is ignored. Defaults to false.
-    - `network_group_id` - (Required) The resource ID of the network group that the connectivity configuration applies to. This property is required if `is_global` is set to false.
+    - `is_global` - (Optional) A boolean value indicating whether this group entry supports global VNet peering (i.e. peering across Azure regions). Defaults to false.
+    - `network_group_key` - (Required) The map key of the network group (from `var.network_groups`) that the connectivity configuration applies to.
     - `use_hub_gateway` - (Optional) A boolean value indicating whether or not to use a hub gateway for this connectivity configuration. This is only applicable if the topology is set to `HubAndSpoke`. Defaults to false.
   `connectivity_topology` - (Required) The topology of the connectivity configuration. Possible values are `HubAndSpoke` and `Mesh`.
   `connectivity_capabilities` - (Optional) The connectivity capabilities of the connectivity configuration.
@@ -91,9 +91,18 @@ variable "connectivity_configurations" {
     - `resource_id` - (Required) The resource ID of the hub.
     - `resource_type` - (Required) The resource type of the hub. Possible values are `Microsoft.Network/virtualNetworks`.
   `delete_existing_peering` - (Optional) A boolean value indicating whether or not to delete existing peerings.
-  `is_global` - (Optional) A boolean value indicating whether the configuration is global.
+  `is_global` - (Optional) A boolean value indicating whether the connectivity configuration supports global VNet peering (i.e. peering across Azure regions). Defaults to false.
   DESCRIPTION
   nullable    = false
+
+  validation {
+    condition = alltrue([
+      for _, cfg in var.connectivity_configurations : alltrue([
+        for group in cfg.applies_to_groups : contains(keys(var.network_groups), group.network_group_key)
+      ])
+    ])
+    error_message = "Each `network_group_key` in `connectivity_configurations.applies_to_groups` must be a key of `var.network_groups`."
+  }
 }
 
 variable "description" {
@@ -254,7 +263,7 @@ variable "routing_configurations" {
       name        = string
       description = optional(string, null)
       applies_to = list(object({
-        network_group_id = string
+        network_group_key = string
       }))
       disable_bgp_route_propagation = optional(bool, true)
       rules = map(object({
@@ -281,7 +290,7 @@ variable "routing_configurations" {
     - `name` - (Required) The name of the rule collection.
     - `description` - (Optional) The description of the rule collection.
     - `applies_to` - (Required) A list of network groups that the rule collection applies to.
-      - `network_group_id` - (Required) The ID of the network group that the rule collection applies to.
+      - `network_group_key` - (Required) The map key of the network group (from `var.network_groups`) that the rule collection applies to.
     - `disable_bgp_route_propagation` - (Optional) A boolean value indicating whether or not to disable BGP route propagation for this rule collection. Defaults to true.
     - `rules` - (Required) A map of rules to create on the rule collection.
       - `name` - (Required) The name of the rule.
@@ -294,6 +303,16 @@ variable "routing_configurations" {
         - `next_hop_address` - (Conditional) The next hop address. This is only applicable if the next hop type is VirtualAppliance, in which case this must be a valid IP address.
   DESCRIPTION
   nullable    = false
+  validation {
+    condition = alltrue([
+      for _, cfg in var.routing_configurations : alltrue([
+        for _, rc in cfg.rule_collections : alltrue([
+          for group in rc.applies_to : contains(keys(var.network_groups), group.network_group_key)
+        ])
+      ])
+    ])
+    error_message = "Each `network_group_key` in `routing_configurations.rule_collections.applies_to` must be a key of `var.network_groups`."
+  }
 }
 
 variable "scope_connections" {
@@ -324,7 +343,7 @@ variable "security_admin_configurations" {
       name        = string
       description = optional(string, null)
       applies_to_groups = list(object({
-        network_group_id = string
+        network_group_key = string
       }))
       rules = map(object({
         name                    = string
@@ -357,7 +376,7 @@ variable "security_admin_configurations" {
     - `name` - (Required) The name of the rule collection.
     - `description` - (Optional) The description of the rule collection.
     - `applies_to_groups` - (Required) A list of network groups that the rule collection applies to.
-      - `network_group_id` - (Required) The ID of the network group that the rule collection applies to.
+      - `network_group_key` - (Required) The map key of the network group (from `var.network_groups`) that the rule collection applies to.
     - `rules` - (Required) A map of rules to create on the rule collection.
       - `name` - (Required) The name of the rule.
       - `access` - (Required) The access type of the rule. Possible values are `Allow`, `AlwaysAllow` and `Deny`.
@@ -375,6 +394,17 @@ variable "security_admin_configurations" {
         - `address_prefix` - (Required) The address prefix. If the address prefix type is IPPrefix, then this must be a valid CIDR notation. If the address prefix type is ServiceTag, then this must be a valid service tag.
   DESCRIPTION
   nullable    = false
+
+  validation {
+    condition = alltrue([
+      for _, cfg in var.security_admin_configurations : alltrue([
+        for _, rc in cfg.rule_collections : alltrue([
+          for group in rc.applies_to_groups : contains(keys(var.network_groups), group.network_group_key)
+        ])
+      ])
+    ])
+    error_message = "Each `network_group_key` in `security_admin_configurations.rule_collections.applies_to_groups` must be a key of `var.network_groups`."
+  }
 }
 
 variable "tags" {

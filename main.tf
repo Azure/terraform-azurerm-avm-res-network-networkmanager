@@ -39,7 +39,7 @@ module "network_groups" {
 
 module "connectivity_configuration" {
   source   = "./modules/connectivity-configuration"
-  for_each = var.connectivity_configurations
+  for_each = local.connectivity_configurations_resolved
 
   applies_to_groups         = each.value.applies_to_groups
   connectivity_topology     = each.value.connectivity_topology
@@ -50,8 +50,6 @@ module "connectivity_configuration" {
   description               = each.value.description
   hubs                      = each.value.hubs
   is_global                 = each.value.is_global
-
-  depends_on = [module.network_groups]
 }
 
 module "scope_connection" {
@@ -67,7 +65,7 @@ module "scope_connection" {
 
 module "security_admin_configuration" {
   source   = "./modules/security-admin-configuration"
-  for_each = var.security_admin_configurations
+  for_each = local.security_admin_configurations_resolved
 
   apply_on_network_intent_policy_based_services  = each.value.apply_on_network_intent_policy_based_services
   name                                           = each.value.name
@@ -75,21 +73,17 @@ module "security_admin_configuration" {
   description                                    = each.value.description
   network_group_address_space_aggregation_option = each.value.network_group_address_space_aggregation_option
   rule_collections                               = each.value.rule_collections
-
-  depends_on = [module.network_groups]
 }
 
 module "routing_configuration" {
   source   = "./modules/routing-configuration"
-  for_each = var.routing_configurations
+  for_each = local.routing_configurations_resolved
 
   name                   = each.value.name
   network_manager_id     = azurerm_network_manager.this.id
   description            = each.value.description
   route_table_usage_mode = each.value.route_table_usage_mode
   rule_collections       = each.value.rule_collections
-
-  depends_on = [module.network_groups]
 }
 
 # required AVM resources interfaces

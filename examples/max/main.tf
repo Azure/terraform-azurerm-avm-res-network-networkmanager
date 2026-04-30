@@ -100,11 +100,6 @@ resource "azapi_resource" "network_spokes" {
   }
 }
 
-locals {
-  network_manager_expected_resource_id = "${azurerm_resource_group.this.id}/providers/Microsoft.Network/networkManagers/network-manager"
-}
-
-
 # This is the module call
 module "network_manager" {
   source = "../../"
@@ -136,7 +131,7 @@ module "network_manager" {
       is_global               = false
       applies_to_groups = [
         {
-          network_group_id   = "${local.network_manager_expected_resource_id}/networkGroups/network-group-spokes-1"
+          network_group_key  = "network_group_spokes_1"
           use_hub_gateway    = false
           group_connectivity = "None"
           is_global          = false
@@ -156,7 +151,7 @@ module "network_manager" {
       is_global               = true
       applies_to_groups = [
         {
-          network_group_id   = "${local.network_manager_expected_resource_id}/networkGroups/network-group-spokes-2"
+          network_group_key  = "network_group_spokes_2"
           use_hub_gateway    = false
           group_connectivity = "DirectlyConnected"
           is_global          = true
@@ -169,7 +164,7 @@ module "network_manager" {
       connectivity_topology = "Mesh"
       applies_to_groups = [
         {
-          network_group_id   = "${local.network_manager_expected_resource_id}/networkGroups/network-group-spokes-1"
+          network_group_key  = "network_group_spokes_1"
           use_hub_gateway    = false
           group_connectivity = "DirectlyConnected"
           is_global          = false
@@ -243,7 +238,7 @@ module "network_manager" {
           name = "test-routing-rule-collection-1-subnet"
           applies_to = [
             {
-              network_group_id = "${local.network_manager_expected_resource_id}/networkGroups/network-group-subnets-1"
+              network_group_key = "network_group_subnets_1"
             }
           ]
           disable_bgp_route_propagation = false
@@ -280,7 +275,7 @@ module "network_manager" {
           name = "test-routing-rule-collection-2-virtual-network"
           applies_to = [
             {
-              network_group_id = "${local.network_manager_expected_resource_id}/networkGroups/network-group-spokes-1"
+              network_group_key = "network_group_spokes_1"
             }
           ]
           rules = {
@@ -320,7 +315,7 @@ module "network_manager" {
           description = "test-rule-collection-description"
           applies_to_groups = [
             {
-              network_group_id = "${local.network_manager_expected_resource_id}/networkGroups/network-group-spokes-1"
+              network_group_key = "network_group_spokes_1"
             }
           ]
           rules = {
@@ -356,10 +351,10 @@ module "network_manager" {
           name = "test-rule-collection-2"
           applies_to_groups = [
             {
-              network_group_id = "${local.network_manager_expected_resource_id}/networkGroups/network-group-spokes-2"
+              network_group_key = "network_group_spokes_2"
             },
             {
-              network_group_id = "${local.network_manager_expected_resource_id}/networkGroups/network-group-spokes-1"
+              network_group_key = "network_group_spokes_1"
             }
           ]
           rules = {
