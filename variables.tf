@@ -303,6 +303,7 @@ variable "routing_configurations" {
         - `next_hop_address` - (Conditional) The next hop address. This is only applicable if the next hop type is VirtualAppliance, in which case this must be a valid IP address.
   DESCRIPTION
   nullable    = false
+
   validation {
     condition = alltrue([
       for _, cfg in var.routing_configurations : alltrue([

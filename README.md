@@ -86,8 +86,8 @@ Description:   A map of connectivity configurations to create on the Network Man
   `description` - (Optional) The description of the connectivity configuration.
   `applies_to_groups` - (Required) A list of network groups that the connectivity configuration applies to.
     - `group_connectivity` - (Required) The type of connectivity for the group. `DirectlyConnected` and `None`.
-    - `is_global` - (Optional) A boolean value indicating whether the connectivity configuration applies to all network groups in the Network Manager. If set to true, then the connectivity configuration applies to all network groups and the `network_group_id` property is ignored. Defaults to false.
-    - `network_group_id` - (Required) The resource ID of the network group that the connectivity configuration applies to. This property is required if `is_global` is set to false.
+    - `is_global` - (Optional) A boolean value indicating whether this group entry supports global VNet peering (i.e. peering across Azure regions). Defaults to false.
+    - `network_group_key` - (Required) The map key of the network group (from `var.network_groups`) that the connectivity configuration applies to.
     - `use_hub_gateway` - (Optional) A boolean value indicating whether or not to use a hub gateway for this connectivity configuration. This is only applicable if the topology is set to `HubAndSpoke`. Defaults to false.
   `connectivity_topology` - (Required) The topology of the connectivity configuration. Possible values are `HubAndSpoke` and `Mesh`.
   `connectivity_capabilities` - (Optional) The connectivity capabilities of the connectivity configuration.
@@ -98,7 +98,7 @@ Description:   A map of connectivity configurations to create on the Network Man
     - `resource_id` - (Required) The resource ID of the hub.
     - `resource_type` - (Required) The resource type of the hub. Possible values are `Microsoft.Network/virtualNetworks`.
   `delete_existing_peering` - (Optional) A boolean value indicating whether or not to delete existing peerings.
-  `is_global` - (Optional) A boolean value indicating whether the configuration is global.
+  `is_global` - (Optional) A boolean value indicating whether the connectivity configuration supports global VNet peering (i.e. peering across Azure regions). Defaults to false.
 
 Type:
 
@@ -109,7 +109,7 @@ map(object({
     applies_to_groups = list(object({
       group_connectivity = string
       is_global          = optional(bool, false)
-      network_group_id   = string
+      network_group_key  = string
       use_hub_gateway    = optional(bool, false)
     }))
     connectivity_topology = string
@@ -287,7 +287,7 @@ Description:   A map of routing configurations to create on the Network Manager.
     - `name` - (Required) The name of the rule collection.
     - `description` - (Optional) The description of the rule collection.
     - `applies_to` - (Required) A list of network groups that the rule collection applies to.
-      - `network_group_id` - (Required) The ID of the network group that the rule collection applies to.
+      - `network_group_key` - (Required) The map key of the network group (from `var.network_groups`) that the rule collection applies to.
     - `disable_bgp_route_propagation` - (Optional) A boolean value indicating whether or not to disable BGP route propagation for this rule collection. Defaults to true.
     - `rules` - (Required) A map of rules to create on the rule collection.
       - `name` - (Required) The name of the rule.
@@ -310,7 +310,7 @@ map(object({
       name        = string
       description = optional(string, null)
       applies_to = list(object({
-        network_group_id = string
+        network_group_key = string
       }))
       disable_bgp_route_propagation = optional(bool, true)
       rules = map(object({
@@ -363,7 +363,7 @@ Description:   A map of security admin configurations to create on the Network M
     - `name` - (Required) The name of the rule collection.
     - `description` - (Optional) The description of the rule collection.
     - `applies_to_groups` - (Required) A list of network groups that the rule collection applies to.
-      - `network_group_id` - (Required) The ID of the network group that the rule collection applies to.
+      - `network_group_key` - (Required) The map key of the network group (from `var.network_groups`) that the rule collection applies to.
     - `rules` - (Required) A map of rules to create on the rule collection.
       - `name` - (Required) The name of the rule.
       - `access` - (Required) The access type of the rule. Possible values are `Allow`, `AlwaysAllow` and `Deny`.
@@ -392,7 +392,7 @@ map(object({
       name        = string
       description = optional(string, null)
       applies_to_groups = list(object({
-        network_group_id = string
+        network_group_key = string
       }))
       rules = map(object({
         name                    = string

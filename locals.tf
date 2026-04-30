@@ -17,13 +17,12 @@ locals {
       ]
     })
   }
-
-  security_admin_configurations_resolved = {
-    for cfg_key, cfg in var.security_admin_configurations : cfg_key => merge(cfg, {
+  routing_configurations_resolved = {
+    for cfg_key, cfg in var.routing_configurations : cfg_key => merge(cfg, {
       rule_collections = {
         for rc_key, rc in cfg.rule_collections : rc_key => merge(rc, {
-          applies_to_groups = [
-            for group in rc.applies_to_groups : {
+          applies_to = [
+            for group in rc.applies_to : {
               network_group_id = module.network_groups[group.network_group_key].resource_id
             }
           ]
@@ -31,13 +30,12 @@ locals {
       }
     })
   }
-
-  routing_configurations_resolved = {
-    for cfg_key, cfg in var.routing_configurations : cfg_key => merge(cfg, {
+  security_admin_configurations_resolved = {
+    for cfg_key, cfg in var.security_admin_configurations : cfg_key => merge(cfg, {
       rule_collections = {
         for rc_key, rc in cfg.rule_collections : rc_key => merge(rc, {
-          applies_to = [
-            for group in rc.applies_to : {
+          applies_to_groups = [
+            for group in rc.applies_to_groups : {
               network_group_id = module.network_groups[group.network_group_key].resource_id
             }
           ]
