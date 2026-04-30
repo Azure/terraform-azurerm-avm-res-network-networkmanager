@@ -2,7 +2,7 @@ resource "azurerm_network_manager" "this" {
   location            = var.location
   name                = var.name
   resource_group_name = var.resource_group_name
-  description         = var.network_manager_description
+  description         = var.description
   scope_accesses      = var.network_manager_scope_accesses
   tags                = var.tags
 
@@ -26,24 +26,64 @@ resource "azurerm_network_manager" "this" {
   }
 }
 
-# Creating network groups and static members
-
-resource "azurerm_network_manager_network_group" "this" {
-  for_each = var.network_manager_network_groups
+module "network_groups" {
+  source   = "./modules/network-group"
+  for_each = var.network_groups
 
   name               = each.value.name
   network_manager_id = azurerm_network_manager.this.id
+  description        = each.value.description
+  member_type        = each.value.member_type
+  static_members     = each.value.static_members
 }
 
-resource "azurerm_network_manager_static_member" "this" {
-  for_each = tomap({
-    for static_member in local.network_groups_static_members :
-    "${static_member.network_group_key}-${static_member.static_member_name}" => static_member
-  })
+module "connectivity_configuration" {
+  source   = "./modules/connectivity-configuration"
+  for_each = local.connectivity_configurations_resolved
 
-  name                      = each.value.static_member_name
-  network_group_id          = azurerm_network_manager_network_group.this[each.value.network_group_key].id
-  target_virtual_network_id = each.value.target_virtual_network_id
+  applies_to_groups         = each.value.applies_to_groups
+  connectivity_topology     = each.value.connectivity_topology
+  name                      = each.value.name
+  network_manager_id        = azurerm_network_manager.this.id
+  connectivity_capabilities = each.value.connectivity_capabilities
+  delete_existing_peering   = each.value.delete_existing_peering
+  description               = each.value.description
+  hubs                      = each.value.hubs
+  is_global                 = each.value.is_global
+}
+
+module "scope_connection" {
+  source   = "./modules/scope-connection"
+  for_each = var.scope_connections
+
+  name               = each.value.name
+  network_manager_id = azurerm_network_manager.this.id
+  resource_id        = each.value.resource_id
+  tenant_id          = each.value.tenant_id
+  description        = each.value.description
+}
+
+module "security_admin_configuration" {
+  source   = "./modules/security-admin-configuration"
+  for_each = local.security_admin_configurations_resolved
+
+  apply_on_network_intent_policy_based_services  = each.value.apply_on_network_intent_policy_based_services
+  name                                           = each.value.name
+  network_manager_id                             = azurerm_network_manager.this.id
+  description                                    = each.value.description
+  network_group_address_space_aggregation_option = each.value.network_group_address_space_aggregation_option
+  rule_collections                               = each.value.rule_collections
+}
+
+module "routing_configuration" {
+  source   = "./modules/routing-configuration"
+  for_each = local.routing_configurations_resolved
+
+  name                   = each.value.name
+  network_manager_id     = azurerm_network_manager.this.id
+  description            = each.value.description
+  route_table_usage_mode = each.value.route_table_usage_mode
+  rule_collections       = each.value.rule_collections
 }
 
 # required AVM resources interfaces

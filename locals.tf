@@ -1,22 +1,46 @@
-# TODO: insert locals here.
 locals {
   role_definition_resource_substring = "/providers/Microsoft.Authorization/roleDefinitions"
 }
 
-
-# Restructure locals
-
+# Resolve `network_group_key` references (map keys of `var.network_groups`) into the actual
+# network group resource IDs that the submodules expect via their `network_group_id` inputs.
 locals {
-  # The following local creates a list of static members for each network group.
-  network_groups_static_members = flatten([
-    for network_group_key, network_group in var.network_manager_network_groups :
-    [
-      for static_member in network_group.static_members :
-      {
-        network_group_key         = network_group_key
-        static_member_name        = static_member.name
-        target_virtual_network_id = static_member.target_virtual_network_id
+  connectivity_configurations_resolved = {
+    for cfg_key, cfg in var.connectivity_configurations : cfg_key => merge(cfg, {
+      applies_to_groups = [
+        for group in cfg.applies_to_groups : {
+          group_connectivity = group.group_connectivity
+          is_global          = group.is_global
+          use_hub_gateway    = group.use_hub_gateway
+          network_group_id   = module.network_groups[group.network_group_key].resource_id
+        }
+      ]
+    })
+  }
+  routing_configurations_resolved = {
+    for cfg_key, cfg in var.routing_configurations : cfg_key => merge(cfg, {
+      rule_collections = {
+        for rc_key, rc in cfg.rule_collections : rc_key => merge(rc, {
+          applies_to = [
+            for group in rc.applies_to : {
+              network_group_id = module.network_groups[group.network_group_key].resource_id
+            }
+          ]
+        })
       }
-    ]
-  ])
+    })
+  }
+  security_admin_configurations_resolved = {
+    for cfg_key, cfg in var.security_admin_configurations : cfg_key => merge(cfg, {
+      rule_collections = {
+        for rc_key, rc in cfg.rule_collections : rc_key => merge(rc, {
+          applies_to_groups = [
+            for group in rc.applies_to_groups : {
+              network_group_id = module.network_groups[group.network_group_key].resource_id
+            }
+          ]
+        })
+      }
+    })
+  }
 }
