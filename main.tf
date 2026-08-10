@@ -14,6 +14,7 @@ resource "azurerm_network_manager" "this" {
       subscription_ids     = scope.value.subscription_ids
     }
   }
+
   dynamic "timeouts" {
     for_each = var.network_manager_timeouts == null ? [] : [var.network_manager_timeouts]
 
@@ -135,6 +136,7 @@ resource "azurerm_monitor_diagnostic_setting" "this" {
       category_group = enabled_log.value
     }
   }
+
   dynamic "metric" {
     for_each = each.value.metric_categories
 
@@ -143,4 +145,3 @@ resource "azurerm_monitor_diagnostic_setting" "this" {
     }
   }
 }
-
