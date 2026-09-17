@@ -64,7 +64,7 @@ module "network_manager" {
   resource_group_name            = azurerm_resource_group.this.name
   # source             = "Azure/avm-<res/ptn>-<name>/azurerm"
   # ...
-  enable_telemetry = var.enable_telemetry
+  enable_telemetry = false
   network_groups = {
     "network-group-1" = {
       name = "network-group-1"
