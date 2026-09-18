@@ -180,7 +180,7 @@ module "network_manager" {
       is_global = false
     }
   }
-  enable_telemetry = false
+  enable_telemetry = var.enable_telemetry
   network_groups = {
     network_group_spokes_1 = {
       name        = "network-group-spokes-1"
@@ -459,7 +459,7 @@ Description:   This variable controls whether or not telemetry is enabled for th
 
 Type: `bool`
 
-Default: `true`
+Default: `false`
 
 ## Outputs
 

@@ -57,7 +57,7 @@ module "network_manager" {
   resource_group_name            = azurerm_resource_group.this.name
   # source             = "Azure/avm-<res/ptn>-<name>/azurerm"
   # ...
-  enable_telemetry = false
+  enable_telemetry = var.enable_telemetry
 }
 ```
 
@@ -97,7 +97,7 @@ Description:   This variable controls whether or not telemetry is enabled for th
 
 Type: `bool`
 
-Default: `true`
+Default: `false`
 
 ## Outputs
 
