@@ -1,0 +1,7 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Azure/azure-verified-modules-tools/main/src/Avm.Authoring/Resources/Schemas/v1/avm-module-metadata.schema.json",
+  "moduleDisplayName": "Azure Virtual Network Manager Routing Configuration",
+  "moduleDescription": "Module to deploy Azure Virtual Network Manager Routing Configuration.",
+  "canonicalType": "Microsoft.Network/networkManagers/routingConfigurations",
+  "telemetryIdPrefix": "46d3xtrf.res.2337897"
+}
