@@ -31,9 +31,11 @@ module "network_groups" {
   source   = "./modules/network-group"
   for_each = var.network_groups
 
+  location           = var.location
   name               = each.value.name
   network_manager_id = azurerm_network_manager.this.id
   description        = each.value.description
+  enable_telemetry   = var.enable_telemetry
   member_type        = each.value.member_type
   static_members     = each.value.static_members
 }
@@ -44,11 +46,13 @@ module "connectivity_configuration" {
 
   applies_to_groups         = each.value.applies_to_groups
   connectivity_topology     = each.value.connectivity_topology
+  location                  = var.location
   name                      = each.value.name
   network_manager_id        = azurerm_network_manager.this.id
   connectivity_capabilities = each.value.connectivity_capabilities
   delete_existing_peering   = each.value.delete_existing_peering
   description               = each.value.description
+  enable_telemetry          = var.enable_telemetry
   hubs                      = each.value.hubs
   is_global                 = each.value.is_global
 }
@@ -57,11 +61,13 @@ module "scope_connection" {
   source   = "./modules/scope-connection"
   for_each = var.scope_connections
 
+  location           = var.location
   name               = each.value.name
   network_manager_id = azurerm_network_manager.this.id
   resource_id        = each.value.resource_id
   tenant_id          = each.value.tenant_id
   description        = each.value.description
+  enable_telemetry   = var.enable_telemetry
 }
 
 module "security_admin_configuration" {
@@ -69,9 +75,11 @@ module "security_admin_configuration" {
   for_each = local.security_admin_configurations_resolved
 
   apply_on_network_intent_policy_based_services  = each.value.apply_on_network_intent_policy_based_services
+  location                                       = var.location
   name                                           = each.value.name
   network_manager_id                             = azurerm_network_manager.this.id
   description                                    = each.value.description
+  enable_telemetry                               = var.enable_telemetry
   network_group_address_space_aggregation_option = each.value.network_group_address_space_aggregation_option
   rule_collections                               = each.value.rule_collections
 }
@@ -80,9 +88,11 @@ module "routing_configuration" {
   source   = "./modules/routing-configuration"
   for_each = local.routing_configurations_resolved
 
+  location               = var.location
   name                   = each.value.name
   network_manager_id     = azurerm_network_manager.this.id
   description            = each.value.description
+  enable_telemetry       = var.enable_telemetry
   route_table_usage_mode = each.value.route_table_usage_mode
   rule_collections       = each.value.rule_collections
 }
