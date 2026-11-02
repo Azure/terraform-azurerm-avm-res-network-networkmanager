@@ -52,12 +52,6 @@ Description:   (Required) The connectivity topology of the connectivity configur
 
 Type: `string`
 
-### <a name="input_location"></a> [location](#input\_location)
-
-Description: The Azure region for this module's resources or telemetry deployment.
-
-Type: `string`
-
 ### <a name="input_name"></a> [name](#input\_name)
 
 Description:   (Required) The name of the connectivity configuration.
@@ -143,6 +137,14 @@ Description:   (Optional) A boolean value indicating whether the connectivity co
 Type: `bool`
 
 Default: `false`
+
+### <a name="input_location"></a> [location](#input\_location)
+
+Description: The Azure region for this module's resources or telemetry deployment.
+
+Type: `string`
+
+Default: `null`
 
 ## Outputs
 
