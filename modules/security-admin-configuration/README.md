@@ -35,12 +35,6 @@ Description:   (Required) A list of network intent policy-based services that th
 
 Type: `list(string)`
 
-### <a name="input_location"></a> [location](#input\_location)
-
-Description: The Azure region for this module's resources or telemetry deployment.
-
-Type: `string`
-
 ### <a name="input_name"></a> [name](#input\_name)
 
 Description:   (Required) The name of the Security Admin Configuration. The name must be between 1 and 64 characters, and can contain letters, numbers, underscores, periods, and hyphens. The name must start with a letter or a number, and end with a letter, a number, or an underscore.
@@ -74,6 +68,14 @@ If it is set to false, then no telemetry will be collected.
 Type: `bool`
 
 Default: `true`
+
+### <a name="input_location"></a> [location](#input\_location)
+
+Description: The Azure region for this module's resources or telemetry deployment.
+
+Type: `string`
+
+Default: `null`
 
 ### <a name="input_network_group_address_space_aggregation_option"></a> [network\_group\_address\_space\_aggregation\_option](#input\_network\_group\_address\_space\_aggregation\_option)
 
